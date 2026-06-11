@@ -151,7 +151,8 @@ def require_admin(handler):
 # ── Default Admin anlegen ────────────────────────────────────────────
 def ensure_default_admin():
     users = load_all(DATA_DIR / "users")
-    if not users:
+    configured_admin_exists = any(u.get("email","").lower() == ADMIN_EMAIL for u in users)
+    if not users or (ADMIN_PASS and not configured_admin_exists):
         initial_password = ADMIN_PASS or secrets.token_urlsafe(14)
         admin = {
             "id": uid(),
@@ -162,7 +163,7 @@ def ensure_default_admin():
             "created_at": now_iso()
         }
         save_item(DATA_DIR / "users", admin)
-        print(f"  Standard-Admin angelegt: {ADMIN_EMAIL} / {initial_password}")
+        print(f"  Admin angelegt: {ADMIN_EMAIL} / {initial_password}")
         if not ADMIN_PASS:
             print("  Wichtig: Dieses zufällige Erstpasswort jetzt notieren und danach in der App ändern.")
 
