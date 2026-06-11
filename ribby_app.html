@@ -1667,6 +1667,12 @@ function catClass(cat){ return 'ca'; }
 function catLbl(cat){ return cat||'Tier'; }
 function confColor(p){ return p>=75?'var(--g600)':p>=50?'#d97706':'#dc2626'; }
 function confLabel(p){ return p>=75?'Hohe Übereinstimmung':p>=50?'Mittlere Übereinstimmung':'Niedrige Übereinstimmung'; }
+function inferSpeciesNameFromRef(ref){
+  const direct=ref?.species_name_de||ref?.name_de||ref?.species||ref?.species_name||'';
+  if(direct)return direct;
+  const fn=String(ref?.filename||'').replace(/\.[^.]+$/,'').replace(/^\d+\s*[-_ ]*/,'').replace(/[_-]+/g,' ').trim();
+  return fn||'Unbekannt';
+}
 
 function renderResults(data) {
   _lastMatches = data.matches||[];
@@ -1708,6 +1714,11 @@ function renderResults(data) {
       </div>`;
     });
   }
+  html+=`<div class="aibox" style="margin-top:12px">
+    <strong>Art nicht korrekt?</strong><br>
+    <span style="font-size:13px;color:var(--muted)">Automatische Erkennung ignorieren und die Art selbst unter „Sonstiges“ eintragen.</span><br>
+    <button class="btns btno" type="button" onclick="confirmOtherMatch()" style="font-size:12px;margin-top:10px">Sonstiges eintragen</button>
+  </div>`;
   document.getElementById('results-out').innerHTML=html;
   refreshLang();
 }
@@ -1746,6 +1757,26 @@ function populateConfirmSpecies(match){
   const sp=allSp.find(s=>s.name_de===match.species_name_de||s.sci===match.scientific_name)||null;
   if(hid)hid.value=sp?.id||'';
   if(inp)inp.value=sp?(sp.name_de+' ('+sp.sci+')'):(match.species_name_de||'');
+}
+function confirmOtherMatch(){
+  _confirmMatch={species_name_de:'Sonstiges',scientific_name:'',category:'Sonstiges',image_url:null,confidence:0};
+  populateConfirmSpecies(_confirmMatch);
+  const title=document.getElementById('confirm-sp-name'); if(title)title.textContent='Sonstiges';
+  const file=selFile||(recBlob?new File([recBlob],'aufnahme.wav',{type:'audio/wav'}):null);
+  document.getElementById('confirm-file-info').innerHTML=(file?'<strong>Datei:</strong> '+file.name+'<br>':'')+'<strong>Hinweis:</strong> automatische Erkennung wird ignoriert';
+  const saveRef=document.getElementById('confirm-save-ref'); if(saveRef)saveRef.checked=true;
+  const other=document.getElementById('confirm-other-sp'), wrap=document.getElementById('confirm-other-wrap'), name=document.getElementById('confirm-other-name');
+  if(other)other.checked=true;
+  if(wrap)wrap.style.display='block';
+  if(name){name.value='';setTimeout(()=>name.focus(),0);}
+  const search=document.getElementById('confirm-sp-search'); if(search)search.disabled=true;
+  const hid=document.getElementById('confirm-sp-id'); if(hid)hid.value='';
+  const area=document.getElementById('confirm-area'); if(area)area.value='';
+  const mapGps=document.getElementById('confirm-map-gps'); if(mapGps){mapGps.checked=!!_currentGPS;mapGps.disabled=!_currentGPS;}
+  updateConfirmGpsInfo();
+  const fnEl=document.getElementById('confirm-filename');
+  if(fnEl&&file){const d=new Date();fnEl.value='Sonstiges_'+d.toISOString().slice(0,10).replace(/-/g,'')+'.'+((file.name.split('.').pop())||'wav');}
+  openModal('confirm-modal');
 }
 function selectConfirmSpeciesFromSearch(){
   const other=document.getElementById('confirm-other-sp');
@@ -1919,33 +1950,42 @@ async function doAnalyze(src) {
       document.getElementById('results-out').innerHTML=`<div class="aibox" style="border-color:#fbbf24;background:#fffbeb"><strong>Keine Referenz-Audios vorhanden</strong><br>Lade unter Verwaltung → Referenz-Audio Dateien hoch.<br><br><strong>Lizenzfreie Quellen:</strong><br>· <a href="https://www.xeno-canto.org" target="_blank" style="color:var(--g600)">xeno-canto.org</a> · <a href="https://www.inaturalist.org" target="_blank" style="color:var(--g600)">iNaturalist.org</a></div>`;
       btn.disabled=false; btn.innerHTML='&#128269; Analysieren'; return;
     }
-    const refFeats={};let done=0;
+    const refFeats={};const refMetaBySid={};let done=0;
     for (const ref of refs) {
       try {
+        const sid=ref.species_id||ref.speciesId||ref.sp_id||'';
+        if(!sid){done++;continue;}
+        if(!refMetaBySid[sid])refMetaBySid[sid]=ref;
         let feat;
         if (ref.featV3&&ref.featV3.length===N_MFCC*6+8) feat=new Float32Array(ref.featV3);
         else { setLbl('Features: '+ref.filename+'...'); const blob=new Blob([ref.audioData],{type:ref.mimeType||'audio/wav'}); feat=await analyzeFile(new File([blob],ref.filename)); const featArr=Array.from(feat); if(serverMode)serverUpdateRefAudio(ref.id,{featV3:featArr}).catch(console.warn); else await dbPut('refaudio',{...ref,featV3:featArr,featV2:null,mfcc:null}); }
-        if (!refFeats[ref.species_id]) refFeats[ref.species_id]=[];
-        refFeats[ref.species_id].push(feat);
+        if (!refFeats[sid]) refFeats[sid]=[];
+        refFeats[sid].push(feat);
       } catch(e){console.warn('Ref-Fehler:',ref.filename,e);}
       done++; prog(35+Math.round(45*done/refs.length));
     }
     prog(82); setLbl('Berechne Ähnlichkeiten...');
     const sp=serverMode?await serverLoadSpecies():await dbAll('species');
     allSp=sp;
+    const spById=new Map(sp.map(s=>[String(s.id),s]));
+    const spByName=new Map();
+    sp.forEach(s=>{if(s.name_de)spByName.set(normMapText(s.name_de),s);if(s.sci)spByName.set(normMapText(s.sci),s);});
     const scores=[];
     for (const[sid,feats] of Object.entries(refFeats)){
       const sims=feats.map(rf=>combinedSim(inputFeat,rf)); sims.sort((a,b)=>a-b);
       const med=sims.length%2===0?(sims[sims.length/2-1]+sims[sims.length/2])/2:sims[Math.floor(sims.length/2)];
       const score=.7*med+.3*sims[sims.length-1];
-      scores.push({sid,score,nRefs:feats.length,species:sp.find(x=>x.id===sid)});
+      const meta=refMetaBySid[sid]||{};
+      const inferred=inferSpeciesNameFromRef(meta);
+      const species=spById.get(String(sid))||spByName.get(normMapText(inferred))||sp.find(s=>normMapText(inferred).includes(normMapText(s.name_de))||normMapText(s.name_de).includes(normMapText(inferred)));
+      scores.push({sid,score,nRefs:feats.length,species,meta});
     }
     scores.sort((a,b)=>b.score-a.score);
     const topScore=scores[0]?.score||.5;
     const matches=scores.slice(0,5).map((r,i)=>{
-      const s=r.species; const x=(r.score-.52)*18; let conf=1/(1+Math.exp(-x));
+      const s=r.species, meta=r.meta||{}; const x=(r.score-.52)*18; let conf=1/(1+Math.exp(-x));
       if(i===0)conf=Math.max(.30,Math.min(.98,conf)); else conf=Math.max(.02,Math.min(.92,conf*(1-(topScore-r.score)/(topScore+.001))));
-      return{species_name_de:s?.name_de||'Unbekannt',scientific_name:s?.sci||'',category:s?.category||'',image_url:s?.img_url||null,confidence:conf,nRefs:r.nRefs};
+      return{species_id:r.sid,species_name_de:s?.name_de||inferSpeciesNameFromRef(meta),scientific_name:s?.sci||meta.sci||meta.scientific_name||'',category:s?.category||meta.category||'Tier',image_url:s?.img_url||meta.img_url||null,confidence:conf,nRefs:r.nRefs};
     });
     prog(97);
     const dur=await(async()=>{try{const arr=await readAudioBuffer(file);const ab=await decodeAudio(arr);return ab.duration;}catch{return null;}})();
@@ -2024,7 +2064,7 @@ function saveRefGeoMeta(meta){
   localStorage.setItem('ribby_ref_geo',JSON.stringify(all));
 }
 function normMapText(v){
-  return String(v||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').trim();
+  return String(v||'').toLowerCase().replace(/ä/g,'ae').replace(/ö/g,'oe').replace(/ü/g,'ue').replace(/ß/g,'ss').normalize('NFD').replace(/[\u0300-\u036f]/g,'').trim();
 }
 function escHtml(v){
   return String(v||'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -2392,11 +2432,13 @@ async function doBatchAnalyze(){
   let refs;if(serverMode){const metas=await serverLoadRefAudio();refs=await Promise.all(metas.map(async m=>{try{const buf=await serverLoadRefAudioFile(m.id,m.mime_type);return{...m,audioData:buf,mimeType:m.mime_type};}catch{return null;}}));refs=refs.filter(Boolean);}else refs=await dbAll('refaudio');
   if(!refs.length){toast('Keine Referenz-Audios','err');btn.disabled=false;return;}
   const sp=serverMode?await serverLoadSpecies():await dbAll('species'),results=[];
+  const spById=new Map(sp.map(s=>[String(s.id),s])),spByName=new Map();
+  sp.forEach(s=>{if(s.name_de)spByName.set(normMapText(s.name_de),s);if(s.sci)spByName.set(normMapText(s.sci),s);});
   for(let i=0;i<_batchFiles.length;i++){const f=_batchFiles[i];const stEl=document.getElementById('batch-status-'+i);if(stEl){stEl.textContent='Analysiere...';stEl.style.color='var(--g600)';}
     document.getElementById('batch-progress').innerHTML=`<div class="progress-bar"><div class="progress-fill" style="width:${Math.round(i/_batchFiles.length*100)}%"></div></div><div style="font-size:12px;color:var(--muted);margin-top:5px">Datei ${i+1}/${_batchFiles.length}: ${f.name}</div>`;
-    try{const feat=await analyzeFile(f);const refFeats={};for(const ref of refs){let rf;if(ref.featV3&&ref.featV3.length===N_MFCC*6+8)rf=new Float32Array(ref.featV3);else{const blob=new Blob([ref.audioData],{type:ref.mimeType||'audio/wav'});rf=await analyzeFile(new File([blob],ref.filename));const rfArr=Array.from(rf);if(serverMode)serverUpdateRefAudio(ref.id,{featV3:rfArr}).catch(console.warn);else await dbPut('refaudio',{...ref,featV3:rfArr,featV2:null,mfcc:null});}if(!refFeats[ref.species_id])refFeats[ref.species_id]=[];refFeats[ref.species_id].push(rf);}
-      const scores=[];for(const[sid,feats]of Object.entries(refFeats)){const sims=feats.map(rf=>combinedSim(feat,rf));sims.sort((a,b)=>a-b);const med=sims.length%2===0?(sims[sims.length/2-1]+sims[sims.length/2])/2:sims[Math.floor(sims.length/2)];scores.push({sid,score:.7*med+.3*sims[sims.length-1],species:sp.find(x=>x.id===sid)});}
-      scores.sort((a,b)=>b.score-a.score);const topS=scores[0]?.score||.5;const matches=scores.slice(0,3).map((r,j)=>{const s=r.species;let conf=1/(1+Math.exp(-(r.score-.52)*18));if(j===0)conf=Math.max(.30,Math.min(.98,conf));else conf=Math.max(.02,conf*(1-(topS-r.score)/(topS+.001)));return{species_name_de:s?.name_de||'Unbekannt',scientific_name:s?.sci||'',confidence:conf};});
+    try{const feat=await analyzeFile(f);const refFeats={},refMetaBySid={};for(const ref of refs){const sid=ref.species_id||ref.speciesId||ref.sp_id||'';if(!sid)continue;if(!refMetaBySid[sid])refMetaBySid[sid]=ref;let rf;if(ref.featV3&&ref.featV3.length===N_MFCC*6+8)rf=new Float32Array(ref.featV3);else{const blob=new Blob([ref.audioData],{type:ref.mimeType||'audio/wav'});rf=await analyzeFile(new File([blob],ref.filename));const rfArr=Array.from(rf);if(serverMode)serverUpdateRefAudio(ref.id,{featV3:rfArr}).catch(console.warn);else await dbPut('refaudio',{...ref,featV3:rfArr,featV2:null,mfcc:null});}if(!refFeats[sid])refFeats[sid]=[];refFeats[sid].push(rf);}
+      const scores=[];for(const[sid,feats]of Object.entries(refFeats)){const sims=feats.map(rf=>combinedSim(feat,rf));sims.sort((a,b)=>a-b);const med=sims.length%2===0?(sims[sims.length/2-1]+sims[sims.length/2])/2:sims[Math.floor(sims.length/2)];const meta=refMetaBySid[sid]||{},inferred=inferSpeciesNameFromRef(meta);const species=spById.get(String(sid))||spByName.get(normMapText(inferred))||sp.find(s=>normMapText(inferred).includes(normMapText(s.name_de))||normMapText(s.name_de).includes(normMapText(inferred)));scores.push({sid,score:.7*med+.3*sims[sims.length-1],species,meta});}
+      scores.sort((a,b)=>b.score-a.score);const topS=scores[0]?.score||.5;const matches=scores.slice(0,3).map((r,j)=>{const s=r.species,meta=r.meta||{};let conf=1/(1+Math.exp(-(r.score-.52)*18));if(j===0)conf=Math.max(.30,Math.min(.98,conf));else conf=Math.max(.02,conf*(1-(topS-r.score)/(topS+.001)));return{species_name_de:s?.name_de||inferSpeciesNameFromRef(meta),scientific_name:s?.sci||meta.sci||meta.scientific_name||'',confidence:conf};});
       results.push({file:f.name,matches});if(stEl){const c=Math.round((matches[0]?.confidence||0)*100);stEl.textContent=matches[0]?.species_name_de+' ('+c+'%)';stEl.style.color=confColor(c);}
       const entry={id:uid(),filename:f.name,matches,gps:_currentGPS||null,created_at:new Date().toISOString(),user_id:curUser?.id};
       if(serverMode&&navigator.onLine)await serverSaveHistory(entry);else if(!serverMode)await dbPut('history',entry);else _offlineQueue.push(entry);
