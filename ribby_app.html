@@ -529,6 +529,7 @@ audio{width:100%;margin-top:7px;height:30px}
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:13px;height:13px"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/><circle cx="12" cy="12" r="7"/></svg>
         <span id="gps-label">GPS erfassen</span>
       </div>
+      <button class="btns btno" type="button" onclick="promptManualGPS()" style="font-size:12px;padding:6px 10px">Koordinate eingeben</button>
       <div id="gps-coords" style="font-size:11px;color:var(--muted);font-family:IBM Plex Mono,monospace"></div>
     </div>
     <!-- Batch Panel -->
@@ -796,6 +797,14 @@ audio{width:100%;margin-top:7px;height:30px}
       <datalist id="confirm-species-options"></datalist>
     </div>
     <label style="display:flex;align-items:flex-start;gap:10px;font-size:13px;color:var(--txt2);line-height:1.5;margin-bottom:12px;cursor:pointer">
+      <input type="checkbox" id="confirm-other-sp" onchange="toggleConfirmOther()" style="margin-top:2px;accent-color:var(--g600)">
+      <span>Sonstiges: automatische Erkennung ignorieren</span>
+    </label>
+    <div class="fg" id="confirm-other-wrap" style="display:none">
+      <label>Andere Art eintragen</label>
+      <input type="text" id="confirm-other-name" placeholder="Deutscher oder wissenschaftlicher Artname">
+    </div>
+    <label style="display:flex;align-items:flex-start;gap:10px;font-size:13px;color:var(--txt2);line-height:1.5;margin-bottom:12px;cursor:pointer">
       <input type="checkbox" id="confirm-save-ref" checked style="margin-top:2px;accent-color:var(--g600)">
       <span>Audiodatei als Referenz-Audio speichern</span>
     </label>
@@ -813,6 +822,7 @@ audio{width:100%;margin-top:7px;height:30px}
     </div>
     <div id="confirm-gps-info" style="font-size:12px;color:var(--muted);margin-top:8px"></div>
     <button class="btns btno" type="button" onclick="requestGPS().then(updateConfirmGpsInfo)" style="font-size:12px;margin-top:8px">GPS jetzt erfassen</button>
+    <button class="btns btno" type="button" onclick="promptManualGPS().then(updateConfirmGpsInfo)" style="font-size:12px;margin-top:8px">Koordinate eingeben</button>
     <div class="mfoot">
       <button class="btns btno" onclick="closeModal('confirm-modal')">Abbrechen</button>
       <button class="btns" onclick="doConfirmSave()">Bestätigen</button>
@@ -968,6 +978,7 @@ let _batchFiles  = [];
 let _offlineQueue= [];
 let _mapPoints   = [];
 let _mapView     = {lat:51.1657,lon:10.4515,zoom:6};
+let _mapAreaFocus= null;
 let _sessionTimer= null;
 const SESSION_TIMEOUT_MS = 30*60*1000;
 
@@ -1594,7 +1605,10 @@ async function startRec() {
       document.getElementById('rec-prev').innerHTML=`<div class="aprev">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:17px;height:17px;color:var(--g600)"><path d="M12 1a3 3 0 00-3 3v8a3 3 0 006 0V4a3 3 0 00-3-3z"/></svg>
         <div style="flex:1"><div class="apn">Aufnahme_${new Date().toISOString().slice(0,19).replace('T','_')}.wav</div>
-        <div class="apm">${recSecs}s · audio/wav</div><audio controls src="${url}"></audio></div></div>`;
+        <div class="apm">${recSecs}s · audio/wav</div><audio controls src="${url}"></audio>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px">
+          <button class="btns btno" type="button" onclick="discardRecording()" style="font-size:12px;padding:6px 10px">Aufnahme verwerfen</button>
+        </div></div></div>`;
       document.getElementById('analyze-rec-btn').disabled=false;
       document.getElementById('rec-stat').textContent='Aufnahme bereit';
       const gps=document.getElementById('gps-section'); if(gps) gps.style.display='flex';
@@ -1612,20 +1626,40 @@ function stopRec() {
   document.getElementById('rec-btn').classList.remove('rec');
   document.getElementById('rec-btn').innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:28px;height:28px"><path d="M12 1a3 3 0 00-3 3v8a3 3 0 006 0V4a3 3 0 00-3-3z"/><path d="M19 10v2a7 7 0 01-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>';
 }
+function discardRecording(){
+  if(medRec&&medRec.state==='recording')stopRec();
+  recBlob=null; recChunks=[]; recSecs=0;
+  const prev=document.getElementById('rec-prev'); if(prev)prev.innerHTML='';
+  const btn=document.getElementById('analyze-rec-btn'); if(btn)btn.disabled=true;
+  const timer=document.getElementById('rec-timer'); if(timer)timer.textContent='00:00';
+  const stat=document.getElementById('rec-stat'); if(stat)stat.textContent='Aufnahme verworfen';
+  toast('Aufnahme verworfen','ok');
+}
 
 // ── GPS ───────────────────────────────────────────────────────────
-function resetGPS() { _currentGPS=null; const l=document.getElementById('gps-label'); const co=document.getElementById('gps-coords'); if(l)l.textContent='GPS erfassen'; if(co)co.textContent=''; }
+function updateGpsDisplay(){
+  const l=document.getElementById('gps-label'), co=document.getElementById('gps-coords');
+  if(!_currentGPS){if(l)l.textContent='GPS erfassen'; if(co)co.textContent=''; return;}
+  if(l)l.textContent='GPS erfasst';
+  if(co)co.textContent=Number(_currentGPS.lat).toFixed(5)+', '+Number(_currentGPS.lon).toFixed(5)+' (±'+Math.round(_currentGPS.acc||0)+'m)';
+}
+function resetGPS() { _currentGPS=null; updateGpsDisplay(); }
 async function requestGPS() {
   if (!navigator.geolocation) { toast('GPS nicht verfügbar','err'); return; }
-  document.getElementById('gps-label').textContent='Ermittle...';
-  navigator.geolocation.getCurrentPosition(
+  const l=document.getElementById('gps-label'); if(l)l.textContent='Ermittle...';
+  return new Promise(resolve=>navigator.geolocation.getCurrentPosition(
     pos=>{ _currentGPS={lat:pos.coords.latitude,lon:pos.coords.longitude,acc:pos.coords.accuracy};
-      document.getElementById('gps-label').textContent='GPS erfasst';
-      document.getElementById('gps-coords').textContent=_currentGPS.lat.toFixed(5)+', '+_currentGPS.lon.toFixed(5)+' (±'+Math.round(_currentGPS.acc)+'m)';
-      toast('Position erfasst ✓','ok'); },
-    err=>{ document.getElementById('gps-label').textContent='GPS erfassen'; toast('GPS: '+err.message,'err'); },
+      updateGpsDisplay(); toast('Position erfasst ✓','ok'); resolve(_currentGPS); },
+    err=>{ updateGpsDisplay(); toast('GPS: '+err.message,'err'); resolve(null); },
     {enableHighAccuracy:true,timeout:10000}
-  );
+  ));
+}
+async function promptManualGPS(){
+  const raw=prompt('Koordinate eingeben im Format: Breitengrad, Längengrad\nBeispiel: 48.3941, 11.7695\nAuch möglich: 48,3941; 11,7695');
+  if(!raw)return null;
+  const gps=parseGpsInput(raw);
+  if(!gps){toast('Ungültige Koordinate. Beispiel: 48.3941, 11.7695','err');return null;}
+  _currentGPS=gps; updateGpsDisplay(); toast('Koordinate übernommen','ok'); return _currentGPS;
 }
 
 // ── ANALYSE-ERGEBNISSE DARSTELLUNG ───────────────────────────────
@@ -1694,6 +1728,10 @@ function confirmMatch(idx) {
   if(saveRef) saveRef.checked=true;
   if(mapGps){mapGps.checked=!!_currentGPS;mapGps.disabled=!_currentGPS;}
   if(area) area.value='';
+  const other=document.getElementById('confirm-other-sp'), otherWrap=document.getElementById('confirm-other-wrap'), otherName=document.getElementById('confirm-other-name');
+  if(other)other.checked=false;
+  if(otherWrap)otherWrap.style.display='none';
+  if(otherName)otherName.value='';
   updateConfirmGpsInfo();
   const fnEl=document.getElementById('confirm-filename');
   if (fnEl&&file) { const d=new Date(); const dateStr=d.toISOString().slice(0,10).replace(/-/g,''); const art=(match.scientific_name||match.species_name_de||'Art').replace(/\s+/g,'_'); const ext='.'+((file.name.split('.').pop())||'wav'); fnEl.value=art+'_'+dateStr+ext; fnEl.select(); }
@@ -1710,12 +1748,42 @@ function populateConfirmSpecies(match){
   if(inp)inp.value=sp?(sp.name_de+' ('+sp.sci+')'):(match.species_name_de||'');
 }
 function selectConfirmSpeciesFromSearch(){
+  const other=document.getElementById('confirm-other-sp');
+  if(other&&other.checked)return;
   const raw=(document.getElementById('confirm-sp-search')?.value||'').replace(/\s*\([^)]*\)\s*$/,'');
   const n=normMapText(raw);
   const sp=allSp.find(s=>normMapText(s.name_de)===n||normMapText(s.sci)===n||normMapText(`${s.name_de} ${s.sci}`).includes(n));
   const hid=document.getElementById('confirm-sp-id');
   if(hid)hid.value=sp?.id||'';
   if(sp&&_confirmMatch){_confirmMatch={..._confirmMatch,species_name_de:sp.name_de,scientific_name:sp.sci,category:sp.category,image_url:sp.img_url};document.getElementById('confirm-sp-name').textContent=sp.name_de+(sp.sci?' ('+sp.sci+')':'');}
+}
+function toggleConfirmOther(){
+  const checked=!!document.getElementById('confirm-other-sp')?.checked;
+  const wrap=document.getElementById('confirm-other-wrap'), search=document.getElementById('confirm-sp-search'), hid=document.getElementById('confirm-sp-id'), title=document.getElementById('confirm-sp-name');
+  if(wrap)wrap.style.display=checked?'block':'none';
+  if(search)search.disabled=checked;
+  if(hid&&checked)hid.value='';
+  if(title&&checked)title.textContent='Sonstiges';
+}
+async function resolveConfirmSpecies(){
+  const other=!!document.getElementById('confirm-other-sp')?.checked;
+  if(!other){
+    selectConfirmSpeciesFromSearch();
+    const selectedId=document.getElementById('confirm-sp-id')?.value||'';
+    return allSp.find(s=>s.id===selectedId)||allSp.find(s=>s.name_de===_confirmMatch.species_name_de||s.sci===_confirmMatch.scientific_name)||null;
+  }
+  const raw=(document.getElementById('confirm-other-name')?.value||'').trim();
+  if(!raw){toast('Bitte Art bei Sonstiges eintragen','err');return null;}
+  const n=normMapText(raw);
+  let sp=allSp.find(s=>normMapText(s.name_de)===n||normMapText(s.sci)===n);
+  if(sp)return sp;
+  const sci=/^[A-ZÄÖÜ][a-zäöüß-]+ [a-zäöüß-]+/.test(raw)?raw:'';
+  const name=sci?'Sonstiges: '+raw:raw;
+  const newSp={id:uid(),name_de:name,sci:sci,category:'Sonstiges',desc:'',img_url:'',created_at:new Date().toISOString()};
+  if(serverMode)sp=await serverSaveSpecies(newSp);else{await dbPut('species',newSp);sp=newSp;}
+  allSp.push(sp);
+  _confirmMatch={..._confirmMatch,species_name_de:sp.name_de,scientific_name:sp.sci,category:sp.category,image_url:sp.img_url};
+  return sp;
 }
 function updateConfirmGpsInfo(){
   const gpsInfo=document.getElementById('confirm-gps-info');
@@ -1731,8 +1799,7 @@ async function doConfirmSave() {
   if (!shouldSave) { toast('Treffer bestätigt','ok'); return; }
   const file=selFile||(recBlob?new File([recBlob],'aufnahme.wav',{type:'audio/wav'}):null);
   if (!file) { toast('Keine Audiodatei verfügbar','err'); return; }
-  const selectedId=document.getElementById('confirm-sp-id')?.value||'';
-  const sp=allSp.find(s=>s.id===selectedId)||allSp.find(s=>s.name_de===_confirmMatch.species_name_de||s.sci===_confirmMatch.scientific_name);
+  const sp=await resolveConfirmSpecies();
   if (!sp) { toast('Art nicht in Bibliothek gefunden','err'); return; }
   const fnEl=document.getElementById('confirm-filename');
   const saveName=(fnEl&&fnEl.value.trim())?fnEl.value.trim():file.name;
@@ -2094,8 +2161,10 @@ async function searchMapPlace(){
       const r=await fetch('https://nominatim.openstreetmap.org/search?format=json&limit=1&q='+encodeURIComponent(q));
       const data=await r.json();
       if(data&&data[0]){
-        _mapView={lat:parseFloat(data[0].lat),lon:parseFloat(data[0].lon),zoom:12};
+        _mapAreaFocus={label:q,lat:parseFloat(data[0].lat),lon:parseFloat(data[0].lon),radiusKm:25};
+        _mapView={lat:_mapAreaFocus.lat,lon:_mapAreaFocus.lon,zoom:11};
       } else {
+        _mapAreaFocus=null;
         toast('Ort nicht gefunden','err');
       }
     }catch(e){
@@ -2103,6 +2172,13 @@ async function searchMapPlace(){
     }
   }
   renderGpsMap();
+}
+function gpsDistanceKm(a,b){
+  const R=6371, toRad=x=>Number(x)*Math.PI/180;
+  const dLat=toRad(b.lat-a.lat), dLon=toRad(b.lon-a.lon);
+  const lat1=toRad(a.lat), lat2=toRad(b.lat);
+  const h=Math.sin(dLat/2)**2+Math.cos(lat1)*Math.cos(lat2)*Math.sin(dLon/2)**2;
+  return 2*R*Math.asin(Math.min(1,Math.sqrt(h)));
 }
 async function renderGpsMap(){
   const speciesQ=normMapText(document.getElementById('map-species-q')?.value||'');
@@ -2112,7 +2188,9 @@ async function renderGpsMap(){
   const points=allPoints.filter(p=>{
     const spHay=normMapText([p.species,p.scientific].join(' '));
     const areaHay=normMapText([p.area,p.filename,p.species,p.scientific].join(' '));
-    return (!speciesQ||spHay.includes(speciesQ))&&(!areaNorm||areaHay.includes(areaNorm));
+    const inFocus=!_mapAreaFocus||gpsDistanceKm(_mapAreaFocus,p.gps)<=_mapAreaFocus.radiusKm;
+    const areaMatch=!areaNorm||inFocus||areaHay.includes(areaNorm);
+    return (!speciesQ||spHay.includes(speciesQ))&&areaMatch;
   });
   _mapPoints=points;
   renderAreaStats(points, areaQ);
@@ -2124,7 +2202,7 @@ async function renderGpsMap(){
   if(sum)sum.innerHTML='<strong>'+points.length+'</strong> GPS-Punkt(e) \u00b7 '+points.filter(p=>p.type==='Referenz').length+' Referenz \u00b7 '+points.filter(p=>p.type==='Analyse').length+' Analyse'+markerHtml;
   const exact=speciesQ?points.find(p=>normMapText(p.species)===speciesQ||normMapText(p.scientific)===speciesQ):null;
   const focus=exact?points.indexOf(exact):(points.length?0:-1);
-  renderMapCanvas('gps-map',points,focus,areaQ||speciesQ||'Referenzkarte');
+  renderMapCanvas('gps-map',points,focus,(_mapAreaFocus?.label)||areaQ||speciesQ||'Referenzkarte');
   if(focus>=0)setTimeout(()=>focusMapPoint(focus),0);
   refreshLang();
 }
