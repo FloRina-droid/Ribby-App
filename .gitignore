@@ -1,0 +1,6 @@
+.env
+ribby_data/
+__pycache__/
+*.pyc
+*.zip
+.DS_Store
