@@ -24,8 +24,18 @@ from datetime import datetime
 
 # ── Konfiguration ────────────────────────────────────────────────────
 BASE_DIR    = Path(__file__).parent
+def env_int(name: str, default: int) -> int:
+    raw = os.getenv(name)
+    if raw is None or str(raw).strip() == "":
+        return default
+    try:
+        return int(str(raw).strip())
+    except ValueError:
+        print(f"  WARNUNG: {name}={raw!r} ist keine Zahl. Nutze {default}.")
+        return default
+
 HOST        = os.getenv("RIBBY_HOST", "0.0.0.0")
-PORT        = int(os.getenv("RIBBY_PORT", os.getenv("PORT", "7432")))
+PORT        = env_int("PORT", env_int("RIBBY_PORT", 7432))
 DATA_DIR    = Path(os.getenv("RIBBY_DATA_DIR", str(BASE_DIR / "ribby_data"))).expanduser()
 PUBLIC_URL  = os.getenv("RIBBY_PUBLIC_URL", "").rstrip("/")
 ADMIN_EMAIL = os.getenv("RIBBY_ADMIN_EMAIL", "admin@ribby.app").strip().lower()
@@ -33,7 +43,7 @@ ADMIN_PASS  = os.getenv("RIBBY_ADMIN_PASSWORD", "")
 CORS_ORIGINS= [o.strip().rstrip("/") for o in os.getenv("RIBBY_CORS_ORIGINS", "").split(",") if o.strip()]
 SESSIONS    = {}   # token → user_id
 SESSION_TTL = 86400 * 7  # 7 Tage
-MAX_UPLOAD_BYTES = int(os.getenv("RIBBY_MAX_UPLOAD_MB", "80")) * 1024 * 1024
+MAX_UPLOAD_BYTES = env_int("RIBBY_MAX_UPLOAD_MB", 80) * 1024 * 1024
 
 # Datenverzeichnisse anlegen
 (DATA_DIR / "species").mkdir(parents=True, exist_ok=True)
@@ -88,13 +98,3 @@ def load_all(folder: Path):
 
 def find_by_id(folder: Path, item_id: str):
     return load_json(folder / f"{item_id}.json")
-
-def save_item(folder: Path, item: dict):
-    item_id = item.get("id") or uid()
-    item["id"] = item_id
-    save_json(folder / f"{item_id}.json", item)
-    return item
-
-def delete_item(folder: Path, item_id: str) -> bool:
-    p = folder / f"{item_id}.json"
-    if p.exists(): p.unlink(); return True
