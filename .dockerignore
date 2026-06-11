@@ -1,6 +1,6 @@
 ribby_data/
+ribby_data_seed/
 __pycache__/
 *.pyc
 .env
 .DS_Store
-*.zip
