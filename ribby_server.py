@@ -113,35 +113,34 @@ def delete_item(folder: Path, item_id: str) -> bool:
     return False
 
 # ── Seed-Daten einspielen ────────────────────────────────────────────
+def copy_seed_zip_to_data(zip_path: Path):
+    copied = {"species": 0, "refaudio": 0, "history": 0, "audio_files": 0}
+    wanted = set(copied)
+    with zipfile.ZipFile(zip_path, "r") as zf:
+        for info in zf.infolist():
+            if info.is_dir():
+                continue
+            parts = Path(info.filename.replace("\\", "/")).parts
+            folder = next((p for p in parts if p in wanted), None)
+            if not folder:
+                continue
+            filename = parts[-1]
+            if folder != "audio_files" and not filename.endswith(".json"):
+                continue
+            if folder == "audio_files" and not filename.endswith(".bin"):
+                continue
+            dst = DATA_DIR / folder / filename
+            dst.parent.mkdir(parents=True, exist_ok=True)
+            if dst.exists() and dst.stat().st_size > 0:
+                continue
+            with zf.open(info) as src, dst.open("wb") as out:
+                shutil.copyfileobj(src, out)
+            copied[folder] += 1
+    return copied
+
 def ensure_seed_data():
     if os.getenv("RIBBY_DISABLE_SEED", "").strip().lower() in ("1", "true", "yes"):
         print("  Seed-Daten: deaktiviert")
-        return
-    seed_ready = (
-        SEED_DIR.exists()
-        and any((SEED_DIR / "species").glob("*.json"))
-        and any((SEED_DIR / "refaudio").glob("*.json"))
-        and any((SEED_DIR / "audio_files").glob("*.bin"))
-    )
-    if not seed_ready and not SEED_ZIP.exists():
-        parts = sorted(BASE_DIR.glob("ribby_data_seed.zip.part*"))
-        if parts:
-            print(f"  Seed-Daten: setze {len(parts)} Einzeldateien zu ribby_data_seed.zip zusammen")
-            with SEED_ZIP.open("wb") as out:
-                for part in parts:
-                    out.write(part.read_bytes())
-    if not seed_ready and SEED_ZIP.exists():
-        print("  Seed-Daten: entpacke ribby_data_seed.zip")
-        with zipfile.ZipFile(SEED_ZIP, "r") as zf:
-            zf.extractall(BASE_DIR)
-    seed_ready = (
-        SEED_DIR.exists()
-        and any((SEED_DIR / "species").glob("*.json"))
-        and any((SEED_DIR / "refaudio").glob("*.json"))
-        and any((SEED_DIR / "audio_files").glob("*.bin"))
-    )
-    if not seed_ready:
-        print("  Seed-Daten: kein ribby_data_seed Ordner und keine ribby_data_seed.zip gefunden")
         return
     has_species = any((DATA_DIR / "species").glob("*.json"))
     has_refs = any((DATA_DIR / "refaudio").glob("*.json"))
@@ -150,6 +149,32 @@ def ensure_seed_data():
         print("  Seed-Daten: vorhandene Datenbank wird beibehalten")
         return
 
+    if not SEED_ZIP.exists():
+        parts = sorted(BASE_DIR.glob("ribby_data_seed.zip.part*"))
+        if parts:
+            print(f"  Seed-Daten: setze {len(parts)} Einzeldateien zu ribby_data_seed.zip zusammen")
+            with SEED_ZIP.open("wb") as out:
+                for part in parts:
+                    out.write(part.read_bytes())
+
+    if SEED_ZIP.exists():
+        copied = copy_seed_zip_to_data(SEED_ZIP)
+        print(
+            "  Seed-Daten aus ZIP eingespielt: "
+            f"{copied['species']} Arten, {copied['refaudio']} Referenz-Metadaten, "
+            f"{copied['audio_files']} Audiodateien, {copied['history']} Verlaufseinträge"
+        )
+        return
+
+    seed_ready = (
+        SEED_DIR.exists()
+        and any((SEED_DIR / "species").glob("*.json"))
+        and any((SEED_DIR / "refaudio").glob("*.json"))
+        and any((SEED_DIR / "audio_files").glob("*.bin"))
+    )
+    if not seed_ready:
+        print("  Seed-Daten: keine Seed-Dateien gefunden")
+        return
     copied = {"species": 0, "refaudio": 0, "history": 0, "audio_files": 0}
     for folder in copied:
         src = SEED_DIR / folder
