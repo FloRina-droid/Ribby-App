@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+﻿#!/usr/bin/env python3
 """
 Ribby Lokaler Netzwerk-Server
 ==============================
@@ -517,19 +517,27 @@ class RibbyHandler(BaseHTTPRequestHandler):
 
         # ── Art anlegen ───────────────────────────────────────────
         elif path == "/api/species":
-            if not require_admin(self): return
+            u = require_auth(self)
+            if not u: return
             try:
                 body = self.read_json()
+                category = body.get("category","amphibians")
+                if u.get("role") != "admin":
+                    category = "Sonstiges"
+                    body["img_url"] = None
+                    body["description"] = ""
                 sp = {
                     "id": uid(),
                     "name_de": body.get("name_de","").strip(),
                     "sci": body.get("sci","").strip(),
-                    "category": body.get("category","amphibians"),
+                    "category": category,
                     "img_url": body.get("img_url") or None,
                     "description": body.get("description","").strip(),
                     "created_at": now_iso(),
-                    "created_by": auth_from_request(self)["id"] if auth_from_request(self) else None
+                    "created_by": u["id"]
                 }
+                if not sp["name_de"] and not sp["sci"]:
+                    self.send_json({"error": "Artname fehlt"}, 400); return
                 save_item(DATA_DIR / "species", sp)
                 self.send_json(sp, 201)
             except Exception as e:
@@ -594,6 +602,8 @@ class RibbyHandler(BaseHTTPRequestHandler):
                     "filename": body.get("filename",""),
                     "matches": body.get("matches",[]),
                     "duration": body.get("duration"),
+                    "gps": body.get("gps"),
+                    "area": body.get("area",""),
                     "created_at": now_iso(),
                     "user_id": u["id"],
                     "user_name": u.get("name","")

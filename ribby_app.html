@@ -803,6 +803,9 @@ audio{width:100%;margin-top:7px;height:30px}
     <div class="fg" id="confirm-other-wrap" style="display:none">
       <label>Andere Art eintragen</label>
       <input type="text" id="confirm-other-name" placeholder="Deutscher oder wissenschaftlicher Artname">
+      <select id="confirm-other-existing" style="margin-top:8px">
+        <option value="">Bestehende Art wählen...</option>
+      </select>
     </div>
     <label style="display:flex;align-items:flex-start;gap:10px;font-size:13px;color:var(--txt2);line-height:1.5;margin-bottom:12px;cursor:pointer">
       <input type="checkbox" id="confirm-save-ref" checked style="margin-top:2px;accent-color:var(--g600)">
@@ -812,10 +815,6 @@ audio{width:100%;margin-top:7px;height:30px}
       <label>Dateiname</label>
       <input type="text" id="confirm-filename">
     </div>
-    <label style="display:flex;align-items:flex-start;gap:10px;font-size:13px;color:var(--txt2);line-height:1.5;margin-top:2px;cursor:pointer">
-      <input type="checkbox" id="confirm-map-gps" style="margin-top:2px;accent-color:var(--g600)">
-      <span>GPS-Position dieser Aufnahme auf der Karte der Art zuordnen</span>
-    </label>
     <div class="fg" id="confirm-area-wrap" style="margin-top:12px">
       <label>Areal / Fundort</label>
       <input type="text" id="confirm-area" placeholder="z.B. Nordufer, Waldlichtung, Teich 3">
@@ -1236,6 +1235,7 @@ function startSessionTimer() {
 
 // ── NAVIGATION ────────────────────────────────────────────────────
 function showPage(name, btn) {
+  if(name==='admin'&&curUser?.role!=='admin'){toast('Verwaltung nur für Administratoren','err');name='home';btn=document.querySelector('.ntab');}
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
   document.getElementById('page-'+name)?.classList.add('active');
   document.querySelectorAll('.ntab').forEach(t=>t.classList.remove('active'));
@@ -1733,16 +1733,15 @@ function confirmMatch(idx) {
   const file=selFile||(recBlob?new File([recBlob],'aufnahme.wav',{type:'audio/wav'}):null);
   document.getElementById('confirm-file-info').innerHTML=(file?'<strong>Datei:</strong> '+file.name+'<br>':'')+'<strong>Konfidenz:</strong> '+Math.round((match.confidence||0)*100)+'%';
   const saveRef=document.getElementById('confirm-save-ref');
-  const mapGps=document.getElementById('confirm-map-gps');
   const gpsInfo=document.getElementById('confirm-gps-info');
   const area=document.getElementById('confirm-area');
   if(saveRef) saveRef.checked=true;
-  if(mapGps){mapGps.checked=!!_currentGPS;mapGps.disabled=!_currentGPS;}
   if(area) area.value='';
-  const other=document.getElementById('confirm-other-sp'), otherWrap=document.getElementById('confirm-other-wrap'), otherName=document.getElementById('confirm-other-name');
+  const other=document.getElementById('confirm-other-sp'), otherWrap=document.getElementById('confirm-other-wrap'), otherName=document.getElementById('confirm-other-name'), otherExisting=document.getElementById('confirm-other-existing');
   if(other)other.checked=false;
   if(otherWrap)otherWrap.style.display='none';
   if(otherName)otherName.value='';
+  if(otherExisting)otherExisting.value='';
   updateConfirmGpsInfo();
   const fnEl=document.getElementById('confirm-filename');
   if (fnEl&&file) { const d=new Date(); const dateStr=d.toISOString().slice(0,10).replace(/-/g,''); const art=(match.scientific_name||match.species_name_de||'Art').replace(/\s+/g,'_'); const ext='.'+((file.name.split('.').pop())||'wav'); fnEl.value=art+'_'+dateStr+ext; fnEl.select(); }
@@ -1752,8 +1751,16 @@ function populateConfirmSpecies(match){
   const dl=document.getElementById('confirm-species-options');
   const inp=document.getElementById('confirm-sp-search');
   const hid=document.getElementById('confirm-sp-id');
+  const otherExisting=document.getElementById('confirm-other-existing');
   if(!allSp.length)allSp=[];
   if(dl)dl.innerHTML=allSp.map(s=>`<option value="${escHtml(s.name_de||'')}">${escHtml(s.sci||'')}</option><option value="${escHtml(s.sci||'')}">${escHtml(s.name_de||'')}</option>`).join('');
+  if(otherExisting){
+    otherExisting.innerHTML='<option value="">Bestehende Art wählen...</option>'+allSp
+      .slice()
+      .sort((a,b)=>(a.name_de||a.sci||'').localeCompare(b.name_de||b.sci||'','de'))
+      .map(s=>`<option value="${escHtml(s.id)}">${escHtml(s.name_de||s.sci||'Art')}${s.sci?' ('+escHtml(s.sci)+')':''}</option>`)
+      .join('');
+  }
   const sp=allSp.find(s=>s.name_de===match.species_name_de||s.sci===match.scientific_name)||null;
   if(hid)hid.value=sp?.id||'';
   if(inp)inp.value=sp?(sp.name_de+' ('+sp.sci+')'):(match.species_name_de||'');
@@ -1765,14 +1772,14 @@ function confirmOtherMatch(){
   const file=selFile||(recBlob?new File([recBlob],'aufnahme.wav',{type:'audio/wav'}):null);
   document.getElementById('confirm-file-info').innerHTML=(file?'<strong>Datei:</strong> '+file.name+'<br>':'')+'<strong>Hinweis:</strong> automatische Erkennung wird ignoriert';
   const saveRef=document.getElementById('confirm-save-ref'); if(saveRef)saveRef.checked=true;
-  const other=document.getElementById('confirm-other-sp'), wrap=document.getElementById('confirm-other-wrap'), name=document.getElementById('confirm-other-name');
+  const other=document.getElementById('confirm-other-sp'), wrap=document.getElementById('confirm-other-wrap'), name=document.getElementById('confirm-other-name'), existing=document.getElementById('confirm-other-existing');
   if(other)other.checked=true;
   if(wrap)wrap.style.display='block';
+  if(existing)existing.value='';
   if(name){name.value='';setTimeout(()=>name.focus(),0);}
   const search=document.getElementById('confirm-sp-search'); if(search)search.disabled=true;
   const hid=document.getElementById('confirm-sp-id'); if(hid)hid.value='';
   const area=document.getElementById('confirm-area'); if(area)area.value='';
-  const mapGps=document.getElementById('confirm-map-gps'); if(mapGps){mapGps.checked=!!_currentGPS;mapGps.disabled=!_currentGPS;}
   updateConfirmGpsInfo();
   const fnEl=document.getElementById('confirm-filename');
   if(fnEl&&file){const d=new Date();fnEl.value='Sonstiges_'+d.toISOString().slice(0,10).replace(/-/g,'')+'.'+((file.name.split('.').pop())||'wav');}
@@ -1790,11 +1797,12 @@ function selectConfirmSpeciesFromSearch(){
 }
 function toggleConfirmOther(){
   const checked=!!document.getElementById('confirm-other-sp')?.checked;
-  const wrap=document.getElementById('confirm-other-wrap'), search=document.getElementById('confirm-sp-search'), hid=document.getElementById('confirm-sp-id'), title=document.getElementById('confirm-sp-name');
+  const wrap=document.getElementById('confirm-other-wrap'), search=document.getElementById('confirm-sp-search'), hid=document.getElementById('confirm-sp-id'), title=document.getElementById('confirm-sp-name'), existing=document.getElementById('confirm-other-existing'), name=document.getElementById('confirm-other-name');
   if(wrap)wrap.style.display=checked?'block':'none';
   if(search)search.disabled=checked;
   if(hid&&checked)hid.value='';
   if(title&&checked)title.textContent='Sonstiges';
+  if(checked){ if(existing)existing.value=''; if(name)setTimeout(()=>name.focus(),0); }
 }
 async function resolveConfirmSpecies(){
   const other=!!document.getElementById('confirm-other-sp')?.checked;
@@ -1802,6 +1810,14 @@ async function resolveConfirmSpecies(){
     selectConfirmSpeciesFromSearch();
     const selectedId=document.getElementById('confirm-sp-id')?.value||'';
     return allSp.find(s=>s.id===selectedId)||allSp.find(s=>s.name_de===_confirmMatch.species_name_de||s.sci===_confirmMatch.scientific_name)||null;
+  }
+  const existingId=document.getElementById('confirm-other-existing')?.value||'';
+  if(existingId){
+    const existing=allSp.find(s=>s.id===existingId);
+    if(existing){
+      _confirmMatch={..._confirmMatch,species_name_de:existing.name_de,scientific_name:existing.sci,category:existing.category,image_url:existing.img_url};
+      return existing;
+    }
   }
   const raw=(document.getElementById('confirm-other-name')?.value||'').trim();
   if(!raw){toast('Bitte Art bei Sonstiges eintragen','err');return null;}
@@ -1818,9 +1834,7 @@ async function resolveConfirmSpecies(){
 }
 function updateConfirmGpsInfo(){
   const gpsInfo=document.getElementById('confirm-gps-info');
-  const mapGps=document.getElementById('confirm-map-gps');
-  if(mapGps){mapGps.disabled=!_currentGPS;if(_currentGPS)mapGps.checked=true;}
-  if(gpsInfo)gpsInfo.textContent=_currentGPS?('GPS: '+_currentGPS.lat.toFixed(5)+', '+_currentGPS.lon.toFixed(5)+' (+/-'+Math.round(_currentGPS.acc||0)+'m)'):'Keine GPS-Position erfasst. Über „GPS jetzt erfassen“ oder per Koordinate in der Karte ergänzen.';
+  if(gpsInfo)gpsInfo.textContent=_currentGPS?('GPS wird gespeichert: '+_currentGPS.lat.toFixed(5)+', '+_currentGPS.lon.toFixed(5)+' (+/-'+Math.round(_currentGPS.acc||0)+'m)'):'Keine GPS-Position erfasst. Über „GPS jetzt erfassen“ oder „Koordinate eingeben“ ergänzen.';
 }
 async function doConfirmSave() {
   closeModal('confirm-modal');
@@ -1835,7 +1849,7 @@ async function doConfirmSave() {
   const fnEl=document.getElementById('confirm-filename');
   const saveName=(fnEl&&fnEl.value.trim())?fnEl.value.trim():file.name;
   const saveFile=new File([file],saveName,{type:file.type||'audio/wav'});
-  const useMapGps=document.getElementById('confirm-map-gps')?.checked&&_currentGPS;
+  const useMapGps=!!_currentGPS;
   const area=(document.getElementById('confirm-area')?.value||'').trim();
   try {
     let refId=uid();
