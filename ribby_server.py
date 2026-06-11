@@ -1,4 +1,4 @@
-﻿#!/usr/bin/env python3
+#!/usr/bin/env python3
 """
 Ribby Lokaler Netzwerk-Server
 ==============================
@@ -15,7 +15,7 @@ Dann im Browser auf PC und Laptop:
 Anforderungen: Python 3.10+ (keine zusätzlichen Pakete nötig)
 """
 
-import os, sys, json, hashlib, hmac, secrets, base64, time, mimetypes, shutil
+import os, sys, json, hashlib, hmac, secrets, base64, time, mimetypes, shutil, zipfile
 import socket, threading
 from pathlib import Path
 from http.server import ThreadingHTTPServer, BaseHTTPRequestHandler
@@ -38,6 +38,7 @@ HOST        = os.getenv("RIBBY_HOST", "0.0.0.0")
 PORT        = env_int("PORT", env_int("RIBBY_PORT", 7432))
 DATA_DIR    = Path(os.getenv("RIBBY_DATA_DIR", str(BASE_DIR / "ribby_data"))).expanduser()
 SEED_DIR    = Path(os.getenv("RIBBY_SEED_DIR", str(BASE_DIR / "ribby_data_seed"))).expanduser()
+SEED_ZIP    = Path(os.getenv("RIBBY_SEED_ZIP", str(BASE_DIR / "ribby_data_seed.zip"))).expanduser()
 PUBLIC_URL  = os.getenv("RIBBY_PUBLIC_URL", "").rstrip("/")
 ADMIN_EMAIL = os.getenv("RIBBY_ADMIN_EMAIL", "admin@ribby.app").strip().lower()
 ADMIN_PASS  = os.getenv("RIBBY_ADMIN_PASSWORD", "")
@@ -116,8 +117,31 @@ def ensure_seed_data():
     if os.getenv("RIBBY_DISABLE_SEED", "").strip().lower() in ("1", "true", "yes"):
         print("  Seed-Daten: deaktiviert")
         return
-    if not SEED_DIR.exists():
-        print("  Seed-Daten: kein ribby_data_seed Ordner gefunden")
+    seed_ready = (
+        SEED_DIR.exists()
+        and any((SEED_DIR / "species").glob("*.json"))
+        and any((SEED_DIR / "refaudio").glob("*.json"))
+        and any((SEED_DIR / "audio_files").glob("*.bin"))
+    )
+    if not seed_ready and not SEED_ZIP.exists():
+        parts = sorted(BASE_DIR.glob("ribby_data_seed.zip.part*"))
+        if parts:
+            print(f"  Seed-Daten: setze {len(parts)} Einzeldateien zu ribby_data_seed.zip zusammen")
+            with SEED_ZIP.open("wb") as out:
+                for part in parts:
+                    out.write(part.read_bytes())
+    if not seed_ready and SEED_ZIP.exists():
+        print("  Seed-Daten: entpacke ribby_data_seed.zip")
+        with zipfile.ZipFile(SEED_ZIP, "r") as zf:
+            zf.extractall(BASE_DIR)
+    seed_ready = (
+        SEED_DIR.exists()
+        and any((SEED_DIR / "species").glob("*.json"))
+        and any((SEED_DIR / "refaudio").glob("*.json"))
+        and any((SEED_DIR / "audio_files").glob("*.bin"))
+    )
+    if not seed_ready:
+        print("  Seed-Daten: kein ribby_data_seed Ordner und keine ribby_data_seed.zip gefunden")
         return
     has_species = any((DATA_DIR / "species").glob("*.json"))
     has_refs = any((DATA_DIR / "refaudio").glob("*.json"))

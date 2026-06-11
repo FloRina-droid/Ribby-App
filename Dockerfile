@@ -6,8 +6,8 @@ ENV RIBBY_HOST=0.0.0.0
 ENV RIBBY_DATA_DIR=/data/ribby_data
 
 WORKDIR /app
-COPY ribby_server.py ribby_app.html README.md ./
-COPY ribby_data_seed ./ribby_data_seed
+COPY ribby_server.py ribby_app.html ./
+COPY ribby_data_seed.zip.part* ./
 
 RUN mkdir -p /data/ribby_data && chmod -R 777 /data
 RUN python -m py_compile ribby_server.py
