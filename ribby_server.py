@@ -52,6 +52,7 @@ MAX_UPLOAD_BYTES = env_int("RIBBY_MAX_UPLOAD_MB", 80) * 1024 * 1024
 (DATA_DIR / "users").mkdir(parents=True, exist_ok=True)
 (DATA_DIR / "refaudio").mkdir(parents=True, exist_ok=True)
 (DATA_DIR / "history").mkdir(parents=True, exist_ok=True)
+(DATA_DIR / "map_points").mkdir(parents=True, exist_ok=True)
 (DATA_DIR / "audio_files").mkdir(parents=True, exist_ok=True)
 
 # ── Hilfsfunktionen ──────────────────────────────────────────────────
@@ -481,6 +482,12 @@ class RibbyHandler(BaseHTTPRequestHandler):
             hist.sort(key=lambda x: x.get("created_at",""), reverse=True)
             self.send_json(hist)
 
+        elif path == "/api/map_points":
+            if not require_auth(self): return
+            points = load_all(DATA_DIR / "map_points")
+            points.sort(key=lambda x: x.get("created_at",""), reverse=True)
+            self.send_json(points)
+
         elif path == "/api/users":
             if not require_admin(self): return
             users = load_all(DATA_DIR / "users")
@@ -676,6 +683,32 @@ class RibbyHandler(BaseHTTPRequestHandler):
             except Exception as e:
                 self.send_json({"error": str(e)}, 400)
 
+        elif path == "/api/map_points":
+            u = require_auth(self)
+            if not u: return
+            try:
+                body = self.read_json()
+                point = {
+                    "id": uid(),
+                    "species_id": body.get("species_id",""),
+                    "species": body.get("species",""),
+                    "scientific": body.get("scientific",""),
+                    "category": body.get("category","Tier"),
+                    "image": body.get("image",""),
+                    "area": body.get("area",""),
+                    "gps": body.get("gps"),
+                    "filename": body.get("filename","GPS-Punkt"),
+                    "created_at": now_iso(),
+                    "created_by": u["id"],
+                    "created_by_name": u.get("name","")
+                }
+                if not point["gps"]:
+                    self.send_json({"error": "GPS fehlt"}, 400); return
+                save_item(DATA_DIR / "map_points", point)
+                self.send_json(point, 201)
+            except Exception as e:
+                self.send_json({"error": str(e)}, 400)
+
         elif path == "/api/backup/import":
             if not require_admin(self): return
             try:
@@ -786,6 +819,23 @@ class RibbyHandler(BaseHTTPRequestHandler):
             except Exception as e:
                 self.send_json({"error": str(e)}, 400)
 
+        elif path.startswith("/api/map_points/"):
+            if not require_auth(self): return
+            point_id = path.split("/")[-1]
+            existing = find_by_id(DATA_DIR / "map_points", point_id)
+            if not existing:
+                self.send_json({"error": "Nicht gefunden"}, 404); return
+            try:
+                body = self.read_json()
+                for key in ("species_id", "species", "scientific", "category", "image", "area", "gps", "filename"):
+                    if key in body:
+                        existing[key] = body[key]
+                existing["updated_at"] = now_iso()
+                save_item(DATA_DIR / "map_points", existing)
+                self.send_json(existing)
+            except Exception as e:
+                self.send_json({"error": str(e)}, 400)
+
         # ── Benutzer-Rolle ändern ─────────────────────────────────
         elif path.startswith("/api/users/"):
             if not require_admin(self): return
@@ -847,6 +897,12 @@ class RibbyHandler(BaseHTTPRequestHandler):
             if not require_auth(self): return
             hist_id = path.split("/")[-1]
             deleted = delete_item(DATA_DIR/"history", hist_id)
+            self.send_json({"deleted": deleted})
+
+        elif path.startswith("/api/map_points/"):
+            if not require_auth(self): return
+            point_id = path.split("/")[-1]
+            deleted = delete_item(DATA_DIR/"map_points", point_id)
             self.send_json({"deleted": deleted})
 
         else:

@@ -1056,6 +1056,10 @@ async function serverLoadHistory()    { const r=await apiFetch('/api/history'); 
 async function serverSaveHistory(e)   { const r=await apiFetch('/api/history',{method:'POST',body:JSON.stringify(e)}); return r.ok?r.json():null; }
 async function serverUpdateHistory(id,patch){ const r=await apiFetch('/api/history/'+id,{method:'PUT',body:JSON.stringify(patch)}); return r.ok?r.json():null; }
 async function serverDeleteHistory(id){ const r=await apiFetch('/api/history/'+id,{method:'DELETE'}); return r.ok; }
+async function serverLoadMapPoints()  { const r=await apiFetch('/api/map_points'); return r.ok?r.json():[]; }
+async function serverSaveMapPoint(p)  { const r=await apiFetch('/api/map_points',{method:'POST',body:JSON.stringify(p)}); return r.ok?r.json():null; }
+async function serverUpdateMapPoint(id,patch){ const r=await apiFetch('/api/map_points/'+id,{method:'PUT',body:JSON.stringify(patch)}); return r.ok?r.json():null; }
+async function serverDeleteMapPoint(id){ const r=await apiFetch('/api/map_points/'+id,{method:'DELETE'}); return r.ok; }
 async function serverLoadUsers()      { const r=await apiFetch('/api/users'); return r.ok?r.json():[]; }
 async function serverCreateUser(u)    { const r=await apiFetch('/api/users',{method:'POST',body:JSON.stringify(u)}); if(!r.ok){const e=await r.json();throw new Error(e.error||'Fehler');} return r.json(); }
 async function serverDeleteUser(id)   { const r=await apiFetch('/api/users/'+id,{method:'DELETE'}); return r.ok; }
@@ -2175,7 +2179,7 @@ async function collectGpsPoints(){
     const byId=new Set(refs.map(r=>r.id));
     refs=refs.concat(loadRefGeoMeta().filter(r=>!byId.has(r.id)).map(r=>({...r,_localGeo:true})));
   }
-  const custom=loadCustomMapPoints();
+  const custom=serverMode?await serverLoadMapPoints():loadCustomMapPoints();
   const points=[];
   hist.filter(r=>r.gps).forEach(r=>{
     const top=r.matches?.[0]||{};
@@ -2188,7 +2192,7 @@ async function collectGpsPoints(){
   });
   custom.filter(r=>r.gps).forEach(r=>{
     const sp=byId[r.species_id]||{};
-    points.push({source:'custom',id:r.id,type:'Referenz',species_id:r.species_id||'',species:sp.name_de||r.species||'Unbekannt',scientific:sp.sci||r.scientific||'',category:sp.category||r.category||'Tier',image:sp.img_url||r.image||'',filename:r.filename||'GPS-Punkt',area:r.area||'',gps:r.gps,created_at:r.created_at,confidence:null});
+    points.push({source:serverMode?'map_point':'custom',id:r.id,type:'Referenz',species_id:r.species_id||'',species:sp.name_de||r.species||'Unbekannt',scientific:sp.sci||r.scientific||'',category:sp.category||r.category||'Tier',image:sp.img_url||r.image||'',filename:r.filename||'GPS-Punkt',area:r.area||'',gps:r.gps,created_at:r.created_at,confidence:null});
   });
   return points;
 }
@@ -2363,6 +2367,8 @@ async function renameMapPoint(idx){
   try{
     if(p.source==='custom'){
       const pts=loadCustomMapPoints(); const x=pts.find(a=>a.id===p.id); if(x){x.area=area; saveCustomMapPoints(pts);}
+    } else if(p.source==='map_point'&&serverMode){
+      if(!await serverUpdateMapPoint(p.id,{area}))throw new Error('Server hat das Speichern abgelehnt');
     } else if(p.source==='refmeta'){
       const pts=loadRefGeoMeta(); const x=pts.find(a=>a.id===p.id); if(x){x.area=area; localStorage.setItem('ribby_ref_geo',JSON.stringify(pts));}
     } else if(p.source==='refaudio'&&serverMode){
@@ -2381,6 +2387,7 @@ async function deleteMapPoint(idx){
   const p=_mapPoints[Number(idx)]; if(!p||!confirm('GPS-Punkt löschen?'))return;
   try{
     if(p.source==='custom') saveCustomMapPoints(loadCustomMapPoints().filter(x=>x.id!==p.id));
+    else if(p.source==='map_point'&&serverMode){if(!await serverDeleteMapPoint(p.id))throw new Error('Server hat das Löschen abgelehnt');}
     else if(p.source==='refmeta') localStorage.setItem('ribby_ref_geo',JSON.stringify(loadRefGeoMeta().filter(x=>x.id!==p.id)));
     else if(p.source==='refaudio'&&serverMode){if(!await serverUpdateRefAudio(p.id,{gps:null,area:''}))throw new Error('Server hat das Löschen abgelehnt');}
     else if(p.source==='refaudio'&&!serverMode){const r=await dbGet('refaudio',p.id); if(r){delete r.gps; r.area=''; await dbPut('refaudio',r);}}
@@ -2400,7 +2407,13 @@ async function addMapPoint(){
   let gps=_currentGPS;
   if(!gps){const raw=prompt(`Koordinate eingeben oder Google-Maps-Link einfügen.
 Beispiele: 48.3941, 11.7695 · 48,3941 11,7695 · 48°23'38.8"N 11°46'10.2"E`); if(!raw)return; gps=parseGpsInput(raw); if(!gps){toast('Koordinate nicht erkannt. Beispiel: 48.3941, 11.7695','err');return;}}
-  const pts=loadCustomMapPoints(); pts.push({id:uid(),species_id:sp.id,species:sp.name_de,scientific:sp.sci,category:sp.category,image:sp.img_url,area,gps,filename:'GPS-Punkt',created_at:new Date().toISOString()}); saveCustomMapPoints(pts);
+  const point={id:uid(),species_id:sp.id,species:sp.name_de,scientific:sp.sci,category:sp.category,image:sp.img_url,area,gps,filename:'GPS-Punkt',created_at:new Date().toISOString()};
+  if(serverMode){
+    const saved=await serverSaveMapPoint(point);
+    if(!saved){toast('GPS-Punkt konnte nicht gespeichert werden','err');return;}
+  }else{
+    const pts=loadCustomMapPoints(); pts.push(point); saveCustomMapPoints(pts);
+  }
   toast('GPS-Punkt hinzugefügt','ok'); renderGpsMap();
 }
 
