@@ -523,15 +523,6 @@ audio{width:100%;margin-top:7px;height:30px}
       </button>
     </div>
 
-    <!-- GPS-Standort -->
-    <div id="gps-section" style="margin-top:12px;display:none;align-items:center;gap:10px;flex-wrap:wrap">
-      <div id="gps-badge" class="gps-badge" style="cursor:pointer" onclick="requestGPS()">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:13px;height:13px"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/><circle cx="12" cy="12" r="7"/></svg>
-        <span id="gps-label">GPS erfassen</span>
-      </div>
-      <button class="btns btno" type="button" onclick="promptManualGPS()" style="font-size:12px;padding:6px 10px">Koordinate eingeben</button>
-      <div id="gps-coords" style="font-size:11px;color:var(--muted);font-family:IBM Plex Mono,monospace"></div>
-    </div>
     <!-- Batch Panel -->
     <div id="batch-panel" class="hid">
       <div class="shd"><span>Batch-Analyse</span></div>
@@ -1930,6 +1921,27 @@ function cosineSim(a,b){let dot=0,na=0,nb=0;for(let i=0;i<a.length;i++){dot+=a[i
 function euclideanSim(a,b){let d=0;for(let i=0;i<a.length;i++)d+=(a[i]-b[i])*(a[i]-b[i]);return 1/(1+Math.sqrt(d/a.length));}
 function pearsonSim(a,b){const n=a.length;let mA=0,mB=0;for(let i=0;i<n;i++){mA+=a[i];mB+=b[i];}mA/=n;mB/=n;let num=0,dA=0,dB=0;for(let i=0;i<n;i++){const x=a[i]-mA,y=b[i]-mB;num+=x*y;dA+=x*x;dB+=y*y;}return(dA>0&&dB>0)?(num/Math.sqrt(dA*dB)+1)/2:0.5;}
 function combinedSim(a,b){const mE=N_MFCC*6;const aM=a.subarray(0,mE),bM=b.subarray(0,mE),aS=a.subarray(mE),bS=b.subarray(mE);const cosM=(cosineSim(aM,bM)+1)/2,eucM=euclideanSim(aM,bM),prsM=pearsonSim(aM,bM),cosS=(cosineSim(aS,bS)+1)/2;return .90*(.45*cosM+.35*eucM+.20*prsM)+.10*cosS;}
+function clamp(v,min,max){return Math.max(min,Math.min(max,v));}
+function calibratedConfidence(row,rank,rows){
+  const top=rows[0]?.score??row.score??0;
+  const second=rows[1]?.score??0;
+  const margin=Math.max(0,top-second);
+  const refs=Number(row.nRefs||1);
+  const evidence=clamp(Math.log2(refs+1)/2.6,0.35,1);
+  let conf=(1/(1+Math.exp(-((row.score||0)-.64)*13)))*(.52+.35*evidence);
+  if(rank===0)conf+=clamp(margin*2.2,0,.12);
+  else conf*=clamp(1-(top-(row.score||0))*8,.25,.95);
+  let cap=.90;
+  if(margin<.015)cap=.55;
+  else if(margin<.035)cap=.68;
+  else if(margin<.06)cap=.80;
+  if(top<.58)cap=Math.min(cap,.42);
+  else if(top<.62)cap=Math.min(cap,.55);
+  else if(top<.68)cap=Math.min(cap,.72);
+  if(refs<3)cap=Math.min(cap,.78);
+  if(rank>0)cap=Math.min(cap,.58);
+  return clamp(conf,rank===0?.18:.03,cap);
+}
 let _audioCtx=null;
 function getAudioCtx(){if(!_audioCtx||_audioCtx.state==='closed')_audioCtx=new(window.AudioContext||window.webkitAudioContext)();return _audioCtx;}
 async function decodeAudio(buf){return getAudioCtx().decodeAudioData(buf.slice(0));}
@@ -1995,10 +2007,8 @@ async function doAnalyze(src) {
       scores.push({sid,score,nRefs:feats.length,species,meta});
     }
     scores.sort((a,b)=>b.score-a.score);
-    const topScore=scores[0]?.score||.5;
     const matches=scores.slice(0,5).map((r,i)=>{
-      const s=r.species, meta=r.meta||{}; const x=(r.score-.52)*18; let conf=1/(1+Math.exp(-x));
-      if(i===0)conf=Math.max(.30,Math.min(.98,conf)); else conf=Math.max(.02,Math.min(.92,conf*(1-(topScore-r.score)/(topScore+.001))));
+      const s=r.species, meta=r.meta||{}; const conf=calibratedConfidence(r,i,scores);
       return{species_id:r.sid,species_name_de:s?.name_de||inferSpeciesNameFromRef(meta),scientific_name:s?.sci||meta.sci||meta.scientific_name||'',category:s?.category||meta.category||'Tier',image_url:s?.img_url||meta.img_url||null,confidence:conf,nRefs:r.nRefs};
     });
     prog(97);
@@ -2451,8 +2461,8 @@ async function doBatchAnalyze(){
   for(let i=0;i<_batchFiles.length;i++){const f=_batchFiles[i];const stEl=document.getElementById('batch-status-'+i);if(stEl){stEl.textContent='Analysiere...';stEl.style.color='var(--g600)';}
     document.getElementById('batch-progress').innerHTML=`<div class="progress-bar"><div class="progress-fill" style="width:${Math.round(i/_batchFiles.length*100)}%"></div></div><div style="font-size:12px;color:var(--muted);margin-top:5px">Datei ${i+1}/${_batchFiles.length}: ${f.name}</div>`;
     try{const feat=await analyzeFile(f);const refFeats={},refMetaBySid={};for(const ref of refs){const sid=ref.species_id||ref.speciesId||ref.sp_id||'';if(!sid)continue;if(!refMetaBySid[sid])refMetaBySid[sid]=ref;let rf;if(ref.featV3&&ref.featV3.length===N_MFCC*6+8)rf=new Float32Array(ref.featV3);else{const blob=new Blob([ref.audioData],{type:ref.mimeType||'audio/wav'});rf=await analyzeFile(new File([blob],ref.filename));const rfArr=Array.from(rf);if(serverMode)serverUpdateRefAudio(ref.id,{featV3:rfArr}).catch(console.warn);else await dbPut('refaudio',{...ref,featV3:rfArr,featV2:null,mfcc:null});}if(!refFeats[sid])refFeats[sid]=[];refFeats[sid].push(rf);}
-      const scores=[];for(const[sid,feats]of Object.entries(refFeats)){const sims=feats.map(rf=>combinedSim(feat,rf));sims.sort((a,b)=>a-b);const med=sims.length%2===0?(sims[sims.length/2-1]+sims[sims.length/2])/2:sims[Math.floor(sims.length/2)];const meta=refMetaBySid[sid]||{},inferred=inferSpeciesNameFromRef(meta);const species=spById.get(String(sid))||spByName.get(normMapText(inferred))||sp.find(s=>normMapText(inferred).includes(normMapText(s.name_de))||normMapText(s.name_de).includes(normMapText(inferred)));scores.push({sid,score:.7*med+.3*sims[sims.length-1],species,meta});}
-      scores.sort((a,b)=>b.score-a.score);const topS=scores[0]?.score||.5;const matches=scores.slice(0,3).map((r,j)=>{const s=r.species,meta=r.meta||{};let conf=1/(1+Math.exp(-(r.score-.52)*18));if(j===0)conf=Math.max(.30,Math.min(.98,conf));else conf=Math.max(.02,conf*(1-(topS-r.score)/(topS+.001)));return{species_name_de:s?.name_de||inferSpeciesNameFromRef(meta),scientific_name:s?.sci||meta.sci||meta.scientific_name||'',confidence:conf};});
+      const scores=[];for(const[sid,feats]of Object.entries(refFeats)){const sims=feats.map(rf=>combinedSim(feat,rf));sims.sort((a,b)=>a-b);const med=sims.length%2===0?(sims[sims.length/2-1]+sims[sims.length/2])/2:sims[Math.floor(sims.length/2)];const meta=refMetaBySid[sid]||{},inferred=inferSpeciesNameFromRef(meta);const species=spById.get(String(sid))||spByName.get(normMapText(inferred))||sp.find(s=>normMapText(inferred).includes(normMapText(s.name_de))||normMapText(s.name_de).includes(normMapText(inferred)));scores.push({sid,score:.7*med+.3*sims[sims.length-1],nRefs:feats.length,species,meta});}
+      scores.sort((a,b)=>b.score-a.score);const matches=scores.slice(0,3).map((r,j)=>{const s=r.species,meta=r.meta||{};const conf=calibratedConfidence(r,j,scores);return{species_name_de:s?.name_de||inferSpeciesNameFromRef(meta),scientific_name:s?.sci||meta.sci||meta.scientific_name||'',confidence:conf};});
       results.push({file:f.name,matches});if(stEl){const c=Math.round((matches[0]?.confidence||0)*100);stEl.textContent=matches[0]?.species_name_de+' ('+c+'%)';stEl.style.color=confColor(c);}
       const entry={id:uid(),filename:f.name,matches,gps:_currentGPS||null,created_at:new Date().toISOString(),user_id:curUser?.id};
       if(serverMode&&navigator.onLine)await serverSaveHistory(entry);else if(!serverMode)await dbPut('history',entry);else _offlineQueue.push(entry);
