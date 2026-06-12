@@ -2161,15 +2161,36 @@ function saveCustomMapPoints(points){
   localStorage.setItem('ribby_custom_map_points',JSON.stringify(points));
 }
 async function migrateLocalMapPointsToServer(){
-  if(!serverMode||localStorage.getItem('ribby_custom_map_points_migrated')==='1')return;
-  const local=loadCustomMapPoints().filter(p=>p&&p.gps);
-  if(!local.length){localStorage.setItem('ribby_custom_map_points_migrated','1');return;}
+  const migrateKey='ribby_map_points_migrated_v2';
+  if(!serverMode||localStorage.getItem(migrateKey)==='1')return;
+  const custom=loadCustomMapPoints().filter(p=>p&&p.gps);
+  const refGeo=loadRefGeoMeta().filter(p=>p&&p.gps).map(p=>({...p,filename:p.filename||'GPS-Punkt'}));
+  const seen=new Set();
+  const local=custom.concat(refGeo).filter(p=>{
+    const key=[p.species_id||'',p.species||'',p.area||'',Number(p.gps.lat).toFixed(6),Number(p.gps.lon).toFixed(6)].join('|');
+    if(seen.has(key))return false;
+    seen.add(key);
+    return true;
+  });
+  if(!local.length){localStorage.setItem(migrateKey,'1');return;}
   let ok=0;
   for(const p of local){
-    try{await serverSaveMapPoint(p);ok++;}catch(e){console.warn('Marker-Migration fehlgeschlagen:',e);}
+    try{
+      await serverSaveMapPoint({
+        species_id:p.species_id||'',
+        species:p.species||'',
+        scientific:p.scientific||'',
+        category:p.category||'Tier',
+        image:p.image||'',
+        area:p.area||'',
+        gps:p.gps,
+        filename:p.filename||'GPS-Punkt'
+      });
+      ok++;
+    }catch(e){console.warn('Marker-Migration fehlgeschlagen:',e);}
   }
   if(ok){
-    localStorage.setItem('ribby_custom_map_points_migrated','1');
+    localStorage.setItem(migrateKey,'1');
     toast(ok+' lokale GPS-Punkte serverweit synchronisiert','ok');
   }
 }
@@ -2241,9 +2262,9 @@ function mapTileLayerHtml(center,z,w,h){
 }
 function setMapZoom(delta){
   _mapView.zoom=Math.max(3,Math.min(18,(_mapView.zoom||6)+delta));
-  renderMapCanvas('gps-map',_mapPoints,-1,'Referenzkarte');
+  renderMapCanvas('gps-map',_mapPoints,-1,'Referenzkarte',true);
 }
-function renderMapCanvas(id,points=[],focusIndex=-1,label='Referenzkarte'){
+function renderMapCanvas(id,points=[],focusIndex=-1,label='Referenzkarte',preserveView=false){
   const el=document.getElementById(id);
   if(!el)return;
   const w=Math.max(el.clientWidth||760,320), h=Math.max(el.clientHeight||560,320);
@@ -2252,7 +2273,9 @@ function renderMapCanvas(id,points=[],focusIndex=-1,label='Referenzkarte'){
     el.innerHTML='<div class="map-canvas">'+mapTileLayerHtml(_mapView,_mapView.zoom,w,h)+'<div class="map-region-label">'+escHtml(label)+'</div><div class="map-controls"><button class="map-control-btn" onclick="setMapZoom(1)">+</button><button class="map-control-btn" onclick="setMapZoom(-1)">-</button></div><div class="map-empty"><div class="map-empty-card">Keine GPS-Marker für diese Suche.</div></div><div class="map-credit">OpenStreetMap</div></div>';
     return;
   }
-  if(focusIndex>=0&&points[focusIndex]?.gps){
+  if(preserveView&&_mapView?.lat!=null&&_mapView?.lon!=null){
+    _mapView={lat:Number(_mapView.lat),lon:Number(_mapView.lon),zoom:_mapView.zoom||8};
+  } else if(focusIndex>=0&&points[focusIndex]?.gps){
     _mapView={lat:Number(points[focusIndex].gps.lat),lon:Number(points[focusIndex].gps.lon),zoom:Math.max(_mapView.zoom||6,13)};
   } else if(valid.length){
     const minLat=Math.min(...valid.map(p=>Number(p.gps.lat))), maxLat=Math.max(...valid.map(p=>Number(p.gps.lat)));
@@ -2269,7 +2292,7 @@ function renderMapCanvas(id,points=[],focusIndex=-1,label='Referenzkarte'){
     const img=p.image?'<img src="'+escHtml(p.image)+'" alt="" onerror="this.replaceWith(Object.assign(document.createElement(\'span\'),{textContent:\''+initial+'\'}))">':'<span>'+initial+'</span>';
     return '<button class="map-pin '+(originalIndex===focusIndex?'active':'')+'" onclick="focusMapPoint('+originalIndex+')" title="'+escHtml(p.species)+'" style="left:'+safeX+'px;top:'+safeY+'px">'+img+'<span class="map-pin-label">'+escHtml(p.species)+'</span></button>';
   }).join('');
-  el.innerHTML='<div class="map-canvas">'+mapTileLayerHtml(_mapView,_mapView.zoom,w,h)+'<div class="map-region-label">'+escHtml(label)+' · '+valid.length+' Marker</div><div class="map-controls"><button class="map-control-btn" onclick="setMapZoom(1)">+</button><button class="map-control-btn" onclick="setMapZoom(-1)">-</button></div>'+pins+'<div class="map-credit">OpenStreetMap</div></div>';
+  el.innerHTML='<div class="map-canvas">'+mapTileLayerHtml(_mapView,_mapView.zoom,w,h)+'<div class="map-region-label">'+escHtml(label)+' · '+valid.length+' Marker · Zoom '+(_mapView.zoom||8)+'</div><div class="map-controls"><button class="map-control-btn" onclick="setMapZoom(1)">+</button><button class="map-control-btn" onclick="setMapZoom(-1)">-</button></div>'+pins+'<div class="map-credit">OpenStreetMap</div></div>';
 }
 function focusMapPoint(idx){
   const p=_mapPoints[Number(idx)];
@@ -2296,7 +2319,8 @@ function renderAreaStats(points, areaQ){
     const conf=p.confidence!=null?' · '+Math.round((p.confidence||0)*100)+'%':'';
     return `<div class="map-marker-chip"><button class="map-marker-main" onclick="focusMapPoint(${i})">${img}<span style="min-width:0"><strong style="color:var(--txt)">${escHtml(p.species)}</strong>${p.scientific?`<br><span class="map-mini-meta"><em>${escHtml(p.scientific)}</em></span>`:''}<br><span class="map-mini-meta">${escHtml(p.type)}${conf}</span><br><span class="map-mini-meta">GPS: ${coords}</span>${p.area?`<br><span class="map-mini-meta">Ort: ${escHtml(p.area)}</span>`:''}</span></button><div class="map-action-row"><button class="map-mini-btn" onclick="event.stopPropagation();renameMapPoint(${i})">Umbenennen</button><button class="map-mini-btn" onclick="event.stopPropagation();deleteMapPoint(${i})">Löschen</button></div></div>`;
   }).join(''):'<div style="font-size:12px;color:var(--muted)">Keine GPS-Marker für diese Suche.</div>';
-  side.innerHTML=`<h3>${areaQ?'Gebiet: '+escHtml(areaQ):'Referenzkarte'}</h3><div style="font-size:12px;color:var(--muted);margin-bottom:8px">${points.length} GPS-Punkt(e) · ${points.filter(p=>p.type==='Referenz').length} Referenz · ${points.filter(p=>p.type==='Analyse').length} Analyse</div><div class="map-side-section"><strong style="font-size:12px">Marker</strong><div style="display:flex;flex-direction:column;gap:8px;margin-top:8px">${pointRows}</div></div><div class="map-side-section"><strong style="font-size:12px">Gruppen</strong>${catRows}</div><div class="map-side-section"><strong style="font-size:12px">Arten</strong>${spRows}</div>`;
+  const serverCount=points.filter(p=>p.source==='map_point'||p.source==='refaudio'||p.source==='history').length;
+  side.innerHTML=`<h3>${areaQ?'Gebiet: '+escHtml(areaQ):'Referenzkarte'}</h3><div style="font-size:12px;color:var(--muted);margin-bottom:8px">${points.length} GPS-Punkt(e) · ${points.filter(p=>p.type==='Referenz').length} Referenz · ${points.filter(p=>p.type==='Analyse').length} Analyse</div><div style="font-size:11px;color:var(--muted);margin-bottom:8px">${serverMode?'Server-Marker: '+serverCount:'Browsermodus: lokale Marker'}</div><div class="map-side-section"><strong style="font-size:12px">Marker</strong><div style="display:flex;flex-direction:column;gap:8px;margin-top:8px">${pointRows}</div></div><div class="map-side-section"><strong style="font-size:12px">Gruppen</strong>${catRows}</div><div class="map-side-section"><strong style="font-size:12px">Arten</strong>${spRows}</div>`;
   refreshLang();
 }
 async function searchMapPlace(){
