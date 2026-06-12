@@ -2166,7 +2166,7 @@ async function collectGpsPoints(){
   let refs=serverMode?await serverLoadRefAudio():await dbAll('refaudio');
   if(serverMode){
     const byId=new Set(refs.map(r=>r.id));
-    refs=refs.concat(loadRefGeoMeta().filter(r=>!byId.has(r.id)));
+    refs=refs.concat(loadRefGeoMeta().filter(r=>!byId.has(r.id)).map(r=>({...r,_localGeo:true})));
   }
   const custom=loadCustomMapPoints();
   const points=[];
@@ -2177,7 +2177,7 @@ async function collectGpsPoints(){
   });
   refs.filter(r=>r.gps).forEach(r=>{
     const sp=byId[r.species_id]||{};
-    points.push({source:'refaudio',id:r.id,type:'Referenz',species_id:r.species_id||'',species:sp.name_de||r.species_name_de||'Unbekannt',scientific:sp.sci||'',category:sp.category||'Tier',image:sp.img_url||'',filename:r.filename||'',area:r.area||'',gps:r.gps,created_at:r.created_at,confidence:null});
+    points.push({source:r._localGeo?'refmeta':'refaudio',id:r.id,type:'Referenz',species_id:r.species_id||'',species:sp.name_de||r.species_name_de||r.species||'Unbekannt',scientific:sp.sci||r.scientific||'',category:sp.category||'Tier',image:sp.img_url||r.image||'',filename:r.filename||'',area:r.area||'',gps:r.gps,created_at:r.created_at,confidence:null});
   });
   custom.filter(r=>r.gps).forEach(r=>{
     const sp=byId[r.species_id]||{};
@@ -2411,7 +2411,7 @@ async function renderSpList(species){
   try{const allRefs=serverMode?await serverLoadRefAudio():await dbAll('refaudio');allRefs.forEach(r=>{refCounts[r.species_id]=(refCounts[r.species_id]||0)+1;});}catch{}
   const html=species.map(s=>{
     const n=refCounts[s.id]||0;
-    const q={col:'var(--g600)',bg:'var(--g50)',txt:n+' Aufnahme'+(n===1?'':'n')};
+    const q={col:'var(--g600)',bg:'var(--g50)',txt:'Referenz-Audios: '+n};
     return `<div class="spi">${s.img_url?`<img class="spav" src="${s.img_url}" onerror="this.style.display=\'none\'">`:`<div class="spph">${(s.name_de||"?")[0]}</div>`}<div style="flex:1;min-width:0"><div style="font-size:13px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${s.name_de}</div><div style="font-size:11px;font-style:italic;color:var(--muted)">${s.sci}</div><div style="display:flex;align-items:center;gap:6px;margin-top:3px"><span class="catb ca">${s.category||'Tier'}</span><span style="font-size:10px;font-weight:600;padding:1px 7px;border-radius:10px;background:${q.bg};color:${q.col}">${q.txt}</span></div></div><div class="spibtns"><button class="ibtn" onclick="quickAddAudio('${s.id}')" title="Audio hinzufügen"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 19V6l12-3v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="15" r="3"/></svg></button><button class="ibtn" onclick="openEditSp('${s.id}')" title="Bearbeiten"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button><button class="ibtn del" onclick="openDelSp('${s.id}')" title="Löschen"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3,6 5,6 21,6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/></svg></button></div></div>`;
   }).join('');
   document.getElementById('sp-list').innerHTML=html;
@@ -2465,16 +2465,17 @@ async function loadAudList(){
   const all=serverMode?await serverLoadRefAudio(spId):(spId?await dbByIndex('refaudio','species_id',spId):await dbAll('refaudio'));
   if(!all.length){document.getElementById('aud-list').innerHTML='<div style="text-align:center;padding:28px;color:var(--muted)"><div style="font-size:13px;font-weight:600;margin-bottom:4px">Keine Referenz-Audios</div><div style="font-size:12px">Lade Dateien über den Upload-Bereich hoch.</div></div>';return;}
   const sp=serverMode?allSp:await dbAll('species');
+  const countText=spId?(all.length+' Referenz-Audio'+(all.length===1?'':'s')+' für diese Art'):(all.length+' Referenz-Audios insgesamt');
   const rows=await Promise.all(all.map(async a=>{
     const s=sp.find(x=>x.id===a.species_id);
-    let audioSrc='';
+    let audioSrc='', audioErr='';
     try{audioSrc=serverMode?await getServerAudioObjectUrl(a):(a.audioData?URL.createObjectURL(new Blob([a.audioData],{type:a.mimeType||a.mime_type||'audio/wav'})):'');}
-    catch(e){console.warn('Audio konnte nicht geladen werden:',a.filename,e);}
-    return `<div class="afi" oncontextmenu="openCtxMenu(event,'${a.id}','${(a.filename||'').replace(/'/g,"\\'")}')"><div style="flex:1;min-width:0"><div style="font-size:12px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" id="afi-name-${a.id}">${a.filename}</div><div style="font-size:11px;color:var(--muted)">${s?s.name_de:'?'} · ${((a.size||0)/1024).toFixed(0)} KB</div>${audioSrc?`<div style="display:flex;align-items:center;gap:6px;margin-top:4px"><audio id="audio-${a.id}" controls src="${audioSrc}" style="flex:1;height:24px"></audio><select onchange="setAudioSpeed('${a.id}',this.value)" style="font-size:11px;padding:2px 4px;border:1px solid var(--bdr);border-radius:4px;background:#fff;height:24px"><option value="0.5">0.5×</option><option value="0.75">0.75×</option><option value="1" selected>1×</option><option value="1.5">1.5×</option><option value="2">2×</option></select></div>`:''}
+    catch(e){audioErr='Audiodatei nicht gefunden';console.warn('Audio konnte nicht geladen werden:',a.filename,e);}
+    return `<div class="afi" oncontextmenu="openCtxMenu(event,'${a.id}','${(a.filename||'').replace(/'/g,"\\'")}')"><div style="flex:1;min-width:0"><div style="font-size:12px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" id="afi-name-${a.id}">${a.filename}</div><div style="font-size:11px;color:var(--muted)">${s?s.name_de:'?'} · ${((a.size||0)/1024).toFixed(0)} KB</div>${audioSrc?`<div style="display:flex;align-items:center;gap:6px;margin-top:4px"><audio id="audio-${a.id}" controls src="${audioSrc}" style="flex:1;height:24px"></audio><select onchange="setAudioSpeed('${a.id}',this.value)" style="font-size:11px;padding:2px 4px;border:1px solid var(--bdr);border-radius:4px;background:#fff;height:24px"><option value="0.5">0.5×</option><option value="0.75">0.75×</option><option value="1" selected>1×</option><option value="1.5">1.5×</option><option value="2">2×</option></select></div>`:`<div style="font-size:11px;color:#dc2626;margin-top:4px">${audioErr||'Keine Audiodaten verfügbar'}</div>`}
     </div><div style="display:flex;flex-direction:column;gap:4px;margin-left:6px;flex-shrink:0"><button class="ibtn" onclick="openCtxMenu(event,'${a.id}','${(a.filename||'').replace(/'/g,"\\'")}',true)" title="Umbenennen"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>${audioSrc?`<button class="ibtn" onclick="downloadAudio('${audioSrc}','${a.filename}')" title="Herunterladen"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7,10 12,15 17,10"/><line x1="12" y1="15" x2="12" y2="3"/></svg></button>`:''}<button class="ibtn del" onclick="delRefAudio('${a.id}')" title="Löschen"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3,6 5,6 21,6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/></svg></button></div></div>`;
   }));
   const html=rows.join('');
-  document.getElementById('aud-list').innerHTML=`<div style="max-height:350px;overflow-y:auto">${html}</div>`;
+  document.getElementById('aud-list').innerHTML=`<div style="font-size:12px;font-weight:600;color:var(--g600);padding:0 0 8px">${countText}</div><div style="max-height:350px;overflow-y:auto">${html}</div>`;
 }
 function setAudioSpeed(id,s){const el=document.getElementById('audio-'+id);if(el)el.playbackRate=parseFloat(s);}
 function downloadAudio(src,fn){const a=document.createElement('a');a.href=src;a.download=fn||'audio.wav';document.body.appendChild(a);a.click();document.body.removeChild(a);}

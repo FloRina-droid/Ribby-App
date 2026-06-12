@@ -112,6 +112,67 @@ def delete_item(folder: Path, item_id: str) -> bool:
     if p.exists(): p.unlink(); return True
     return False
 
+def safe_filename_part(value: str) -> str:
+    value = (value or "").strip().replace(" ", "_")
+    keep = []
+    for ch in value:
+        if ch.isalnum() or ch in ("_", "-", "."):
+            keep.append(ch)
+    return "".join(keep).strip("._-") or "Audio"
+
+def ext_from_filename(filename: str, mime_type: str = "") -> str:
+    ext = Path(filename or "").suffix.lower()
+    if ext and len(ext) <= 8:
+        return ext
+    mime = (mime_type or "").lower()
+    if "mpeg" in mime or "mp3" in mime: return ".mp3"
+    if "ogg" in mime: return ".ogg"
+    if "flac" in mime: return ".flac"
+    if "mp4" in mime or "m4a" in mime: return ".m4a"
+    return ".wav"
+
+def license_name_part(filename: str) -> str:
+    stem = Path(filename or "").stem
+    low = stem.lower()
+    keys = ("lizenz", "license", "cc-by", "ccby", "cc0", "xeno", "xeno-canto", "inat", "inaturalist", "freesound")
+    if not any(k in low for k in keys):
+        return ""
+    cleaned = safe_filename_part(stem)
+    return cleaned[:80]
+
+def build_refaudio_filename(species: dict | None, original_filename: str, mime_type: str = "", used: set[str] | None = None) -> str:
+    sci = safe_filename_part((species or {}).get("sci") or (species or {}).get("name_de") or "Unbekannte_Art")
+    ext = ext_from_filename(original_filename, mime_type)
+    lic = license_name_part(original_filename)
+    base = f"{sci}_20261206"
+    if lic and lic not in base:
+        base += f"_{lic}"
+    candidate = base + ext
+    if used is not None:
+        i = 2
+        while candidate in used:
+            candidate = f"{base}_{i:02d}{ext}"
+            i += 1
+        used.add(candidate)
+    return candidate
+
+def normalize_refaudio_filenames():
+    species_by_id = {s.get("id"): s for s in load_all(DATA_DIR / "species")}
+    refs = load_all(DATA_DIR / "refaudio")
+    used = set()
+    changed = 0
+    for ref in refs:
+        old = ref.get("filename", "audio.wav")
+        new = build_refaudio_filename(species_by_id.get(ref.get("species_id")), old, ref.get("mime_type") or ref.get("mimeType") or "", used)
+        if old != new:
+            ref["original_filename"] = ref.get("original_filename") or old
+            ref["filename"] = new
+            ref["updated_at"] = now_iso()
+            save_item(DATA_DIR / "refaudio", ref)
+            changed += 1
+    if changed:
+        print(f"  Referenz-Audio-Dateinamen normalisiert: {changed}")
+
 # ── Seed-Daten einspielen ────────────────────────────────────────────
 def copy_seed_zip_to_data(zip_path: Path):
     copied = {"species": 0, "refaudio": 0, "history": 0, "audio_files": 0}
@@ -572,6 +633,8 @@ class RibbyHandler(BaseHTTPRequestHandler):
                     self.send_json({"error": "Keine Audiodaten"}, 400); return
 
                 audio_id = uid()
+                species = find_by_id(DATA_DIR / "species", species_id)
+                filename = build_refaudio_filename(species, filename, mime_type)
                 # Audiodatei speichern
                 audio_file = DATA_DIR / "audio_files" / f"{audio_id}.bin"
                 audio_file.write_bytes(audio_data)
@@ -841,6 +904,7 @@ if __name__ == "__main__":
     try:
         ensure_seed_data()
         ensure_default_admin()
+        normalize_refaudio_filenames()
         ip = get_local_ip()
 
         print()
