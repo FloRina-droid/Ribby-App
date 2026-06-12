@@ -1056,10 +1056,10 @@ async function serverLoadHistory()    { const r=await apiFetch('/api/history'); 
 async function serverSaveHistory(e)   { const r=await apiFetch('/api/history',{method:'POST',body:JSON.stringify(e)}); return r.ok?r.json():null; }
 async function serverUpdateHistory(id,patch){ const r=await apiFetch('/api/history/'+id,{method:'PUT',body:JSON.stringify(patch)}); return r.ok?r.json():null; }
 async function serverDeleteHistory(id){ const r=await apiFetch('/api/history/'+id,{method:'DELETE'}); return r.ok; }
-async function serverLoadMapPoints()  { const r=await apiFetch('/api/map_points'); return r.ok?r.json():[]; }
-async function serverSaveMapPoint(p)  { const r=await apiFetch('/api/map_points',{method:'POST',body:JSON.stringify(p)}); return r.ok?r.json():null; }
-async function serverUpdateMapPoint(id,patch){ const r=await apiFetch('/api/map_points/'+id,{method:'PUT',body:JSON.stringify(patch)}); return r.ok?r.json():null; }
-async function serverDeleteMapPoint(id){ const r=await apiFetch('/api/map_points/'+id,{method:'DELETE'}); return r.ok; }
+async function serverLoadMapPoints()  { const r=await apiFetch('/api/map_points'); if(!r.ok)throw new Error('Kartenpunkte-API nicht erreichbar ('+r.status+')'); return r.json(); }
+async function serverSaveMapPoint(p)  { const r=await apiFetch('/api/map_points',{method:'POST',body:JSON.stringify(p)}); if(!r.ok)throw new Error(await r.text()); return r.json(); }
+async function serverUpdateMapPoint(id,patch){ const r=await apiFetch('/api/map_points/'+id,{method:'PUT',body:JSON.stringify(patch)}); if(!r.ok)throw new Error(await r.text()); return r.json(); }
+async function serverDeleteMapPoint(id){ const r=await apiFetch('/api/map_points/'+id,{method:'DELETE'}); if(!r.ok)throw new Error(await r.text()); return true; }
 async function serverLoadUsers()      { const r=await apiFetch('/api/users'); return r.ok?r.json():[]; }
 async function serverCreateUser(u)    { const r=await apiFetch('/api/users',{method:'POST',body:JSON.stringify(u)}); if(!r.ok){const e=await r.json();throw new Error(e.error||'Fehler');} return r.json(); }
 async function serverDeleteUser(id)   { const r=await apiFetch('/api/users/'+id,{method:'DELETE'}); return r.ok; }
@@ -2160,6 +2160,19 @@ function loadCustomMapPoints(){
 function saveCustomMapPoints(points){
   localStorage.setItem('ribby_custom_map_points',JSON.stringify(points));
 }
+async function migrateLocalMapPointsToServer(){
+  if(!serverMode||localStorage.getItem('ribby_custom_map_points_migrated')==='1')return;
+  const local=loadCustomMapPoints().filter(p=>p&&p.gps);
+  if(!local.length){localStorage.setItem('ribby_custom_map_points_migrated','1');return;}
+  let ok=0;
+  for(const p of local){
+    try{await serverSaveMapPoint(p);ok++;}catch(e){console.warn('Marker-Migration fehlgeschlagen:',e);}
+  }
+  if(ok){
+    localStorage.setItem('ribby_custom_map_points_migrated','1');
+    toast(ok+' lokale GPS-Punkte serverweit synchronisiert','ok');
+  }
+}
 function getPointSpecies(spId, fallbackName='', fallbackSci=''){
   const sp=allSp.find(s=>s.id===spId)||{};
   return {name:sp.name_de||fallbackName||'Unbekannt', sci:sp.sci||fallbackSci||'', image:sp.img_url||'', category:sp.category||'Tier'};
@@ -2199,7 +2212,7 @@ async function collectGpsPoints(){
 async function loadGpsMap(){
   if(!allSp.length){try{allSp=serverMode?await serverLoadSpecies():await dbAll('species');}catch{}}
   renderMapCanvas('gps-map',[], -1, 'Referenzkarte');
-  try{await renderGpsMap();}catch(e){console.error(e);renderMapCanvas('gps-map',[], -1, 'Referenzkarte');}
+  try{await migrateLocalMapPointsToServer();await renderGpsMap();}catch(e){console.error(e);toast('Kartenpunkte konnten nicht geladen werden: '+e.message,'err');renderMapCanvas('gps-map',[], -1, 'Referenzkarte');}
 }
 function pointInitial(p){return String(p.species||p.scientific||'?').trim().charAt(0).toUpperCase()||'?';}
 function lngLatToWorld(lat,lon,z){
@@ -2408,13 +2421,16 @@ async function addMapPoint(){
   if(!gps){const raw=prompt(`Koordinate eingeben oder Google-Maps-Link einfügen.
 Beispiele: 48.3941, 11.7695 · 48,3941 11,7695 · 48°23'38.8"N 11°46'10.2"E`); if(!raw)return; gps=parseGpsInput(raw); if(!gps){toast('Koordinate nicht erkannt. Beispiel: 48.3941, 11.7695','err');return;}}
   const point={id:uid(),species_id:sp.id,species:sp.name_de,scientific:sp.sci,category:sp.category,image:sp.img_url,area,gps,filename:'GPS-Punkt',created_at:new Date().toISOString()};
-  if(serverMode){
-    const saved=await serverSaveMapPoint(point);
-    if(!saved){toast('GPS-Punkt konnte nicht gespeichert werden','err');return;}
-  }else{
-    const pts=loadCustomMapPoints(); pts.push(point); saveCustomMapPoints(pts);
+  try{
+    if(serverMode){
+      await serverSaveMapPoint(point);
+    }else{
+      const pts=loadCustomMapPoints(); pts.push(point); saveCustomMapPoints(pts);
+    }
+    toast('GPS-Punkt hinzugefügt','ok'); renderGpsMap();
+  }catch(e){
+    toast('GPS-Punkt konnte nicht gespeichert werden: '+e.message,'err');
   }
-  toast('GPS-Punkt hinzugefügt','ok'); renderGpsMap();
 }
 
 async function loadAdminData() {
