@@ -797,7 +797,7 @@ audio{width:100%;margin-top:7px;height:30px}
     <div class="fg" id="confirm-other-wrap" style="display:none">
       <label>Andere Art eintragen</label>
       <input type="text" id="confirm-other-name" placeholder="Deutscher oder wissenschaftlicher Artname">
-      <select id="confirm-other-existing" style="margin-top:8px">
+      <select id="confirm-other-existing" onchange="onConfirmOtherExisting()" style="margin-top:8px">
         <option value="">Bestehende Art wählen...</option>
       </select>
     </div>
@@ -1365,7 +1365,7 @@ function applyLang(){
     'Referenzkarte':'Reference map',
     'Gebiet:':'Area:',
     'Gruppen':'Groups',
-    'Unterarten / Arten':'Subspecies / species',
+    'Arten':'Species',
     'Keine Treffer':'No matches',
     'Keine Arten':'No species',
     'Keine GPS-Marker für diese Suche.':'No GPS markers for this search.',
@@ -1650,10 +1650,11 @@ async function requestGPS() {
   ));
 }
 async function promptManualGPS(){
-  const raw=prompt('Koordinate eingeben im Format: Breitengrad, Längengrad\nBeispiel: 48.3941, 11.7695\nAuch möglich: 48,3941; 11,7695');
+  const raw=prompt(`Koordinate eingeben oder Google-Maps-Link einfügen.
+Beispiele: 48.3941, 11.7695 · 48,3941 11,7695 · 48°23'38.8"N 11°46'10.2"E`);
   if(!raw)return null;
   const gps=parseGpsInput(raw);
-  if(!gps){toast('Ungültige Koordinate. Beispiel: 48.3941, 11.7695','err');return null;}
+  if(!gps){toast('Koordinate nicht erkannt. Beispiel: 48.3941, 11.7695','err');return null;}
   _currentGPS=gps; updateGpsDisplay(); toast('Koordinate übernommen','ok'); return _currentGPS;
 }
 
@@ -1662,11 +1663,46 @@ function catClass(cat){ return 'ca'; }
 function catLbl(cat){ return cat||'Tier'; }
 function confColor(p){ return p>=75?'var(--g600)':p>=50?'#d97706':'#dc2626'; }
 function confLabel(p){ return p>=75?'Hohe Übereinstimmung':p>=50?'Mittlere Übereinstimmung':'Niedrige Übereinstimmung'; }
+function cleanSpeciesCandidate(v){
+  return String(v||'')
+    .replace(/\.[a-z0-9]{2,5}$/i,'')
+    .replace(/^\d+\s*[-_ ]*/,'')
+    .replace(/[_-]+/g,' ')
+    .replace(/([a-zäöüß])([A-ZÄÖÜ])/g,'$1 $2')
+    .replace(/\b(?:ruf|call|audio|aufnahme|recording|ref|referenz)\b/gi,' ')
+    .replace(/\s*\d+\s*$/,'')
+    .replace(/\s+/g,' ')
+    .trim();
+}
 function inferSpeciesNameFromRef(ref){
   const direct=ref?.species_name_de||ref?.name_de||ref?.species||ref?.species_name||'';
-  if(direct)return direct;
-  const fn=String(ref?.filename||'').replace(/\.[^.]+$/,'').replace(/^\d+\s*[-_ ]*/,'').replace(/[_-]+/g,' ').trim();
+  if(direct)return cleanSpeciesCandidate(direct);
+  const fn=cleanSpeciesCandidate(ref?.filename||'');
   return fn||'Unbekannt';
+}
+function compactNameKey(v){return normMapText(cleanSpeciesCandidate(v)).replace(/\s+/g,'');}
+function buildSpeciesLookup(species){
+  const byId=new Map(), byName=new Map(), byCompact=new Map();
+  species.forEach(s=>{
+    byId.set(String(s.id),s);
+    [s.name_de,s.sci].filter(Boolean).forEach(n=>{
+      byName.set(normMapText(n),s);
+      byCompact.set(compactNameKey(n),s);
+    });
+  });
+  return {byId,byName,byCompact,species};
+}
+function findSpeciesLoose(raw,lookup){
+  const q=cleanSpeciesCandidate(raw);
+  if(!q)return null;
+  const n=normMapText(q), c=compactNameKey(q);
+  return lookup.byName.get(n)||lookup.byCompact.get(c)||lookup.species.find(s=>{
+    const dn=normMapText(s.name_de), sn=normMapText(s.sci), dc=compactNameKey(s.name_de), sc=compactNameKey(s.sci);
+    return (n&&(dn===n||sn===n||dn.includes(n)||n.includes(dn)||sn.includes(n)||n.includes(sn)))||(c&&(dc===c||sc===c||dc.includes(c)||c.includes(dc)||sc.includes(c)||c.includes(sc)));
+  })||null;
+}
+function resolveSpeciesFromRef(sid,meta,lookup){
+  return lookup.byId.get(String(sid))||findSpeciesLoose(meta?.species_name_de||meta?.name_de||meta?.species||meta?.species_name,lookup)||findSpeciesLoose(meta?.sci||meta?.scientific_name,lookup)||findSpeciesLoose(inferSpeciesNameFromRef(meta),lookup);
 }
 
 function renderResults(data) {
@@ -1756,7 +1792,8 @@ function populateConfirmSpecies(match){
       .map(s=>`<option value="${escHtml(s.id)}">${escHtml(s.name_de||s.sci||'Art')}${s.sci?' ('+escHtml(s.sci)+')':''}</option>`)
       .join('');
   }
-  const sp=allSp.find(s=>s.name_de===match.species_name_de||s.sci===match.scientific_name)||null;
+  const lookup=buildSpeciesLookup(allSp);
+  const sp=lookup.byId.get(String(match.species_id||''))||findSpeciesLoose(match.species_name_de,lookup)||findSpeciesLoose(match.scientific_name,lookup)||null;
   if(hid)hid.value=sp?.id||'';
   if(inp)inp.value=sp?(sp.name_de+' ('+sp.sci+')'):(match.species_name_de||'');
 }
@@ -1799,12 +1836,23 @@ function toggleConfirmOther(){
   if(title&&checked)title.textContent='Sonstiges';
   if(checked){ if(existing)existing.value=''; if(name)setTimeout(()=>name.focus(),0); }
 }
+function onConfirmOtherExisting(){
+  const id=document.getElementById('confirm-other-existing')?.value||'';
+  const sp=allSp.find(s=>s.id===id);
+  if(!sp)return;
+  const name=document.getElementById('confirm-other-name');
+  const title=document.getElementById('confirm-sp-name');
+  if(name)name.value='';
+  if(title)title.textContent=sp.name_de+(sp.sci?' ('+sp.sci+')':'');
+  _confirmMatch={...(_confirmMatch||{}),species_id:sp.id,species_name_de:sp.name_de,scientific_name:sp.sci,category:sp.category,image_url:sp.img_url};
+}
 async function resolveConfirmSpecies(){
   const other=!!document.getElementById('confirm-other-sp')?.checked;
   if(!other){
     selectConfirmSpeciesFromSearch();
     const selectedId=document.getElementById('confirm-sp-id')?.value||'';
-    return allSp.find(s=>s.id===selectedId)||allSp.find(s=>s.name_de===_confirmMatch.species_name_de||s.sci===_confirmMatch.scientific_name)||null;
+    const lookup=buildSpeciesLookup(allSp);
+    return allSp.find(s=>s.id===selectedId)||lookup.byId.get(String(_confirmMatch.species_id||''))||findSpeciesLoose(_confirmMatch.species_name_de,lookup)||findSpeciesLoose(_confirmMatch.scientific_name,lookup)||null;
   }
   const existingId=document.getElementById('confirm-other-existing')?.value||'';
   if(existingId){
@@ -1997,23 +2045,21 @@ async function doAnalyze(src) {
     prog(82); setLbl('Berechne Ähnlichkeiten...');
     const sp=serverMode?await serverLoadSpecies():await dbAll('species');
     allSp=sp;
-    const spById=new Map(sp.map(s=>[String(s.id),s]));
-    const spByName=new Map();
-    sp.forEach(s=>{if(s.name_de)spByName.set(normMapText(s.name_de),s);if(s.sci)spByName.set(normMapText(s.sci),s);});
+    const speciesLookup=buildSpeciesLookup(sp);
     const scores=[];
     for (const[sid,feats] of Object.entries(refFeats)){
       const sims=feats.map(rf=>combinedSim(inputFeat,rf)); sims.sort((a,b)=>a-b);
       const med=sims.length%2===0?(sims[sims.length/2-1]+sims[sims.length/2])/2:sims[Math.floor(sims.length/2)];
       const score=.7*med+.3*sims[sims.length-1];
       const meta=refMetaBySid[sid]||{};
-      const inferred=inferSpeciesNameFromRef(meta);
-      const species=spById.get(String(sid))||spByName.get(normMapText(inferred))||sp.find(s=>normMapText(inferred).includes(normMapText(s.name_de))||normMapText(s.name_de).includes(normMapText(inferred)));
+      const species=resolveSpeciesFromRef(sid,meta,speciesLookup);
       scores.push({sid,score,nRefs:feats.length,species,meta});
     }
     scores.sort((a,b)=>b.score-a.score);
     const matches=scores.slice(0,5).map((r,i)=>{
       const s=r.species, meta=r.meta||{}; const conf=calibratedConfidence(r,i,scores);
-      return{species_id:r.sid,species_name_de:s?.name_de||inferSpeciesNameFromRef(meta),scientific_name:s?.sci||meta.sci||meta.scientific_name||'',category:s?.category||meta.category||'Tier',image_url:s?.img_url||meta.img_url||null,confidence:conf,nRefs:r.nRefs};
+      const inferred=cleanSpeciesCandidate(inferSpeciesNameFromRef(meta));
+      return{species_id:s?.id||'',species_name_de:s?.name_de||'Sonstiges',scientific_name:s?.sci||inferred||'',category:s?.category||'Sonstiges',image_url:s?.img_url||null,confidence:conf,nRefs:r.nRefs,suggested_name:inferred};
     });
     prog(97);
     const dur=await(async()=>{try{const arr=await readAudioBuffer(file);const ab=await decodeAudio(arr);return ab.duration;}catch{return null;}})();
@@ -2224,9 +2270,9 @@ function renderAreaStats(points, areaQ){
     const img=p.image?`<img src="${escHtml(p.image)}" alt="" onerror="this.replaceWith(Object.assign(document.createElement('span'),{className:'map-marker-initial',textContent:'${initial}'}))">`:`<span class="map-marker-initial">${initial}</span>`;
     const coords=(Number(p.gps.lat).toFixed(5)+', '+Number(p.gps.lon).toFixed(5));
     const conf=p.confidence!=null?' · '+Math.round((p.confidence||0)*100)+'%':'';
-    return `<div class="map-marker-chip"><button class="map-marker-main" onclick="focusMapPoint(${i})">${img}<span style="min-width:0"><strong style="color:var(--txt)">${escHtml(p.species)}</strong>${p.scientific?`<br><span class="map-mini-meta"><em>${escHtml(p.scientific)}</em></span>`:''}<br><span class="map-mini-meta">${escHtml(p.type)}${conf}</span><br><span class="map-mini-meta">GPS: ${coords}</span>${p.area?`<br><span class="map-mini-meta">Ort: ${escHtml(p.area)}</span>`:''}</span></button><div class="map-action-row"><button class="map-mini-btn" onclick="renameMapPoint(${i})">Umbenennen</button><button class="map-mini-btn" onclick="deleteMapPoint(${i})">Löschen</button></div></div>`;
+    return `<div class="map-marker-chip"><button class="map-marker-main" onclick="focusMapPoint(${i})">${img}<span style="min-width:0"><strong style="color:var(--txt)">${escHtml(p.species)}</strong>${p.scientific?`<br><span class="map-mini-meta"><em>${escHtml(p.scientific)}</em></span>`:''}<br><span class="map-mini-meta">${escHtml(p.type)}${conf}</span><br><span class="map-mini-meta">GPS: ${coords}</span>${p.area?`<br><span class="map-mini-meta">Ort: ${escHtml(p.area)}</span>`:''}</span></button><div class="map-action-row"><button class="map-mini-btn" onclick="event.stopPropagation();renameMapPoint(${i})">Umbenennen</button><button class="map-mini-btn" onclick="event.stopPropagation();deleteMapPoint(${i})">Löschen</button></div></div>`;
   }).join(''):'<div style="font-size:12px;color:var(--muted)">Keine GPS-Marker für diese Suche.</div>';
-  side.innerHTML=`<h3>${areaQ?'Gebiet: '+escHtml(areaQ):'Referenzkarte'}</h3><div style="font-size:12px;color:var(--muted);margin-bottom:8px">${points.length} GPS-Punkt(e) · ${points.filter(p=>p.type==='Referenz').length} Referenz · ${points.filter(p=>p.type==='Analyse').length} Analyse</div><div class="map-side-section"><strong style="font-size:12px">Marker</strong><div style="display:flex;flex-direction:column;gap:8px;margin-top:8px">${pointRows}</div></div><div class="map-side-section"><strong style="font-size:12px">Gruppen</strong>${catRows}</div><div class="map-side-section"><strong style="font-size:12px">Unterarten / Arten</strong>${spRows}</div>`;
+  side.innerHTML=`<h3>${areaQ?'Gebiet: '+escHtml(areaQ):'Referenzkarte'}</h3><div style="font-size:12px;color:var(--muted);margin-bottom:8px">${points.length} GPS-Punkt(e) · ${points.filter(p=>p.type==='Referenz').length} Referenz · ${points.filter(p=>p.type==='Analyse').length} Analyse</div><div class="map-side-section"><strong style="font-size:12px">Marker</strong><div style="display:flex;flex-direction:column;gap:8px;margin-top:8px">${pointRows}</div></div><div class="map-side-section"><strong style="font-size:12px">Gruppen</strong>${catRows}</div><div class="map-side-section"><strong style="font-size:12px">Arten</strong>${spRows}</div>`;
   refreshLang();
 }
 async function searchMapPlace(){
@@ -2277,10 +2323,29 @@ async function renderGpsMap(){
 }
 function parseGpsInput(raw){
   const text=String(raw||'').trim();
-  const pair=text.match(/^\s*(-?\d+(?:[.,]\d+)?)\s*[;,]\s*(-?\d+(?:[.,]\d+)?)\s*$/)||text.match(/^\s*(-?\d+(?:[.,]\d+)?)\s+(-?\d+(?:[.,]\d+)?)\s*$/);
-  if(!pair)return null;
-  const lat=parseFloat(pair[1].replace(',','.'));
-  const lon=parseFloat(pair[2].replace(',','.'));
+  if(!text)return null;
+  const fromGoogle=text.match(/@(-?\d+(?:\.\d+)?),\s*(-?\d+(?:\.\d+)?)/)||text.match(/[?&](?:q|ll)=(-?\d+(?:\.\d+)?),\s*(-?\d+(?:\.\d+)?)/)||text.match(/!3d(-?\d+(?:\.\d+)?)!4d(-?\d+(?:\.\d+)?)/);
+  if(fromGoogle)return validGps(parseFloat(fromGoogle[1]),parseFloat(fromGoogle[2]));
+  const dms=[];
+  const dmsRe=/([NSEW])?\s*(\d{1,3})\s*[°º]\s*(\d{1,2})?\s*['′]?\s*(\d{1,2}(?:[.,]\d+)?)?\s*(?:["″])?\s*([NSEW])?/gi;
+  let m;
+  while((m=dmsRe.exec(text))){
+    const hemi=(m[1]||m[5]||'').toUpperCase();
+    let val=Number(m[2])+(Number(m[3]||0)/60)+(Number(String(m[4]||0).replace(',','.'))/3600);
+    if(hemi==='S'||hemi==='W')val*=-1;
+    dms.push({val,hemi});
+  }
+  if(dms.length>=2){
+    const latD=dms.find(x=>x.hemi==='N'||x.hemi==='S')||dms[0], lonD=dms.find(x=>x.hemi==='E'||x.hemi==='W')||dms[1];
+    return validGps(latD.val,lonD.val);
+  }
+  const pair=text.match(/(-?\d{1,2}(?:[.,]\d+)?)\s*[,;\s]\s*(-?\d{1,3}(?:[.,]\d+)?)/);
+  if(pair)return validGps(parseFloat(pair[1].replace(',','.')),parseFloat(pair[2].replace(',','.')));
+  const nums=(text.match(/[+-]?\d+(?:[.,]\d+)?/g)||[]).map(x=>parseFloat(x.replace(',','.'))).filter(Number.isFinite);
+  if(nums.length>=2)return validGps(nums[0],nums[1]);
+  return null;
+}
+function validGps(lat,lon){
   if(!Number.isFinite(lat)||!Number.isFinite(lon)||Math.abs(lat)>90||Math.abs(lon)>180)return null;
   return {lat,lon,acc:0};
 }
@@ -2288,41 +2353,46 @@ async function renameMapPoint(idx){
   const p=_mapPoints[Number(idx)]; if(!p)return;
   const val=prompt('Neuer Gebiets-/Markername:',p.area||p.filename||p.species); if(val===null)return;
   const area=val.trim();
-  if(p.source==='custom'){
-    const pts=loadCustomMapPoints(); const x=pts.find(a=>a.id===p.id); if(x){x.area=area; saveCustomMapPoints(pts);}
-  } else if(p.source==='refmeta'){
-    const pts=loadRefGeoMeta(); const x=pts.find(a=>a.id===p.id); if(x){x.area=area; localStorage.setItem('ribby_ref_geo',JSON.stringify(pts));}
-  } else if(p.source==='refaudio'&&serverMode){
-    await serverUpdateRefAudio(p.id,{area});
-  } else if(p.source==='refaudio'&&!serverMode){
-    const r=await dbGet('refaudio',p.id); if(r){r.area=area; await dbPut('refaudio',r);}
-  } else if(p.source==='history'&&serverMode){
-    await serverUpdateHistory(p.id,{area});
-  } else if(p.source==='history'&&!serverMode){
-    const r=await dbGet('history',p.id); if(r){r.area=area; await dbPut('history',r);}
-  } else { toast('Dieser Punkt kann lokal nicht bearbeitet werden','err'); return; }
-  toast('GPS-Punkt umbenannt','ok'); renderGpsMap();
+  try{
+    if(p.source==='custom'){
+      const pts=loadCustomMapPoints(); const x=pts.find(a=>a.id===p.id); if(x){x.area=area; saveCustomMapPoints(pts);}
+    } else if(p.source==='refmeta'){
+      const pts=loadRefGeoMeta(); const x=pts.find(a=>a.id===p.id); if(x){x.area=area; localStorage.setItem('ribby_ref_geo',JSON.stringify(pts));}
+    } else if(p.source==='refaudio'&&serverMode){
+      if(!await serverUpdateRefAudio(p.id,{area}))throw new Error('Server hat das Speichern abgelehnt');
+    } else if(p.source==='refaudio'&&!serverMode){
+      const r=await dbGet('refaudio',p.id); if(r){r.area=area; await dbPut('refaudio',r);}
+    } else if(p.source==='history'&&serverMode){
+      if(!await serverUpdateHistory(p.id,{area}))throw new Error('Server hat das Speichern abgelehnt');
+    } else if(p.source==='history'&&!serverMode){
+      const r=await dbGet('history',p.id); if(r){r.area=area; await dbPut('history',r);}
+    } else { toast('Dieser Punkt kann lokal nicht bearbeitet werden','err'); return; }
+    toast('GPS-Punkt umbenannt','ok'); renderGpsMap();
+  }catch(e){toast('GPS-Punkt konnte nicht gespeichert werden: '+e.message,'err');}
 }
 async function deleteMapPoint(idx){
   const p=_mapPoints[Number(idx)]; if(!p||!confirm('GPS-Punkt löschen?'))return;
-  if(p.source==='custom') saveCustomMapPoints(loadCustomMapPoints().filter(x=>x.id!==p.id));
-  else if(p.source==='refmeta') localStorage.setItem('ribby_ref_geo',JSON.stringify(loadRefGeoMeta().filter(x=>x.id!==p.id)));
-  else if(p.source==='refaudio'&&serverMode) await serverUpdateRefAudio(p.id,{gps:null,area:''});
-  else if(p.source==='refaudio'&&!serverMode){const r=await dbGet('refaudio',p.id); if(r){delete r.gps; r.area=''; await dbPut('refaudio',r);}}
-  else if(p.source==='history'&&serverMode) await serverUpdateHistory(p.id,{gps:null,area:''});
-  else if(p.source==='history'&&!serverMode){const r=await dbGet('history',p.id); if(r){delete r.gps; r.area=''; await dbPut('history',r);}}
-  else { toast('Dieser Punkt kann lokal nicht gelöscht werden','err'); return; }
-  toast('GPS-Punkt gelöscht','ok'); renderGpsMap();
+  try{
+    if(p.source==='custom') saveCustomMapPoints(loadCustomMapPoints().filter(x=>x.id!==p.id));
+    else if(p.source==='refmeta') localStorage.setItem('ribby_ref_geo',JSON.stringify(loadRefGeoMeta().filter(x=>x.id!==p.id)));
+    else if(p.source==='refaudio'&&serverMode){if(!await serverUpdateRefAudio(p.id,{gps:null,area:''}))throw new Error('Server hat das Löschen abgelehnt');}
+    else if(p.source==='refaudio'&&!serverMode){const r=await dbGet('refaudio',p.id); if(r){delete r.gps; r.area=''; await dbPut('refaudio',r);}}
+    else if(p.source==='history'&&serverMode){if(!await serverUpdateHistory(p.id,{gps:null,area:''}))throw new Error('Server hat das Löschen abgelehnt');}
+    else if(p.source==='history'&&!serverMode){const r=await dbGet('history',p.id); if(r){delete r.gps; r.area=''; await dbPut('history',r);}}
+    else { toast('Dieser Punkt kann lokal nicht gelöscht werden','err'); return; }
+    toast('GPS-Punkt gelöscht','ok'); renderGpsMap();
+  }catch(e){toast('GPS-Punkt konnte nicht gelöscht werden: '+e.message,'err');}
 }
 async function addMapPoint(){
   if(!allSp.length) allSp=serverMode?await serverLoadSpecies():await dbAll('species');
   if(!allSp.length){toast('Bitte zuerst eine Art anlegen','err');return;}
   const name=prompt('Artname oder wissenschaftlicher Name:'); if(!name)return;
-  const sp=allSp.find(s=>normMapText(s.name_de)===normMapText(name)||normMapText(s.sci)===normMapText(name));
+  const sp=findSpeciesLoose(name,buildSpeciesLookup(allSp));
   if(!sp){toast('Art nicht gefunden','err');return;}
   const area=prompt('Gebiet / Markername:','')||'';
   let gps=_currentGPS;
-  if(!gps){const raw=prompt('Koordinate eingeben im Format: Breitengrad, Längengrad\nBeispiel: 48.3941, 11.7695\nAuch möglich: 48,3941; 11,7695'); if(!raw)return; gps=parseGpsInput(raw); if(!gps){toast('Ungültige Koordinate. Beispiel: 48.3941, 11.7695','err');return;}}
+  if(!gps){const raw=prompt(`Koordinate eingeben oder Google-Maps-Link einfügen.
+Beispiele: 48.3941, 11.7695 · 48,3941 11,7695 · 48°23'38.8"N 11°46'10.2"E`); if(!raw)return; gps=parseGpsInput(raw); if(!gps){toast('Koordinate nicht erkannt. Beispiel: 48.3941, 11.7695','err');return;}}
   const pts=loadCustomMapPoints(); pts.push({id:uid(),species_id:sp.id,species:sp.name_de,scientific:sp.sci,category:sp.category,image:sp.img_url,area,gps,filename:'GPS-Punkt',created_at:new Date().toISOString()}); saveCustomMapPoints(pts);
   toast('GPS-Punkt hinzugefügt','ok'); renderGpsMap();
 }
@@ -2464,13 +2534,12 @@ async function doBatchAnalyze(){
   let refs;if(serverMode){const metas=await serverLoadRefAudio();refs=await Promise.all(metas.map(async m=>{try{const buf=await serverLoadRefAudioFile(m.id,m.mime_type);return{...m,audioData:buf,mimeType:m.mime_type};}catch{return null;}}));refs=refs.filter(Boolean);}else refs=await dbAll('refaudio');
   if(!refs.length){toast('Keine Referenz-Audios','err');btn.disabled=false;return;}
   const sp=serverMode?await serverLoadSpecies():await dbAll('species'),results=[];
-  const spById=new Map(sp.map(s=>[String(s.id),s])),spByName=new Map();
-  sp.forEach(s=>{if(s.name_de)spByName.set(normMapText(s.name_de),s);if(s.sci)spByName.set(normMapText(s.sci),s);});
+  const speciesLookup=buildSpeciesLookup(sp);
   for(let i=0;i<_batchFiles.length;i++){const f=_batchFiles[i];const stEl=document.getElementById('batch-status-'+i);if(stEl){stEl.textContent='Analysiere...';stEl.style.color='var(--g600)';}
     document.getElementById('batch-progress').innerHTML=`<div class="progress-bar"><div class="progress-fill" style="width:${Math.round(i/_batchFiles.length*100)}%"></div></div><div style="font-size:12px;color:var(--muted);margin-top:5px">Datei ${i+1}/${_batchFiles.length}: ${f.name}</div>`;
     try{const feat=await analyzeFile(f);const refFeats={},refMetaBySid={};for(const ref of refs){const sid=ref.species_id||ref.speciesId||ref.sp_id||'';if(!sid)continue;if(!refMetaBySid[sid])refMetaBySid[sid]=ref;let rf;if(ref.featV3&&ref.featV3.length===N_MFCC*6+8)rf=new Float32Array(ref.featV3);else{const blob=new Blob([ref.audioData],{type:ref.mimeType||'audio/wav'});rf=await analyzeFile(new File([blob],ref.filename));const rfArr=Array.from(rf);if(serverMode)serverUpdateRefAudio(ref.id,{featV3:rfArr}).catch(console.warn);else await dbPut('refaudio',{...ref,featV3:rfArr,featV2:null,mfcc:null});}if(!refFeats[sid])refFeats[sid]=[];refFeats[sid].push(rf);}
-      const scores=[];for(const[sid,feats]of Object.entries(refFeats)){const sims=feats.map(rf=>combinedSim(feat,rf));sims.sort((a,b)=>a-b);const med=sims.length%2===0?(sims[sims.length/2-1]+sims[sims.length/2])/2:sims[Math.floor(sims.length/2)];const meta=refMetaBySid[sid]||{},inferred=inferSpeciesNameFromRef(meta);const species=spById.get(String(sid))||spByName.get(normMapText(inferred))||sp.find(s=>normMapText(inferred).includes(normMapText(s.name_de))||normMapText(s.name_de).includes(normMapText(inferred)));scores.push({sid,score:.7*med+.3*sims[sims.length-1],nRefs:feats.length,species,meta});}
-      scores.sort((a,b)=>b.score-a.score);const matches=scores.slice(0,3).map((r,j)=>{const s=r.species,meta=r.meta||{};const conf=calibratedConfidence(r,j,scores);return{species_name_de:s?.name_de||inferSpeciesNameFromRef(meta),scientific_name:s?.sci||meta.sci||meta.scientific_name||'',confidence:conf};});
+      const scores=[];for(const[sid,feats]of Object.entries(refFeats)){const sims=feats.map(rf=>combinedSim(feat,rf));sims.sort((a,b)=>a-b);const med=sims.length%2===0?(sims[sims.length/2-1]+sims[sims.length/2])/2:sims[Math.floor(sims.length/2)];const meta=refMetaBySid[sid]||{};const species=resolveSpeciesFromRef(sid,meta,speciesLookup);scores.push({sid,score:.7*med+.3*sims[sims.length-1],nRefs:feats.length,species,meta});}
+      scores.sort((a,b)=>b.score-a.score);const matches=scores.slice(0,3).map((r,j)=>{const s=r.species,meta=r.meta||{};const conf=calibratedConfidence(r,j,scores),inferred=cleanSpeciesCandidate(inferSpeciesNameFromRef(meta));return{species_id:s?.id||'',species_name_de:s?.name_de||'Sonstiges',scientific_name:s?.sci||inferred||'',category:s?.category||'Sonstiges',image_url:s?.img_url||null,confidence:conf,suggested_name:inferred};});
       results.push({file:f.name,matches});if(stEl){const c=Math.round((matches[0]?.confidence||0)*100);stEl.textContent=matches[0]?.species_name_de+' ('+c+'%)';stEl.style.color=confColor(c);}
       const entry={id:uid(),filename:f.name,matches,gps:_currentGPS||null,created_at:new Date().toISOString(),user_id:curUser?.id};
       if(serverMode&&navigator.onLine)await serverSaveHistory(entry);else if(!serverMode)await dbPut('history',entry);else _offlineQueue.push(entry);
@@ -2574,7 +2643,7 @@ async function doImport(){
     toast('Import abgeschlossen','ok');await loadAdminData();await loadBackupStats();
   }catch(e){if(res)res.innerHTML='<div class="aibox" style="border-color:#fca5a5;background:#fef2f2;color:#991b1b">Fehler: '+e.message+'</div>';}
 }
-function updateStorageModeInfo(){const el=document.getElementById('storage-mode-info');if(!el)return;el.innerHTML=serverMode?(lang==='en'?'<strong style="color:var(--g600)">✓ Server mode</strong> – data is stored permanently in <code>ribby_data/</code>':'<strong style="color:var(--g600)">✓ Server-Modus</strong> – Daten dauerhaft in <code>ribby_data/</code>'):(lang==='en'?'<strong style="color:#d97706">▲ Browser mode</strong> – data is stored in the browser. Please export regularly!':'<strong style="color:#d97706">▲ Browser-Modus</strong> – Daten im Browser. Bitte regelmäßig exportieren!');}
+function updateStorageModeInfo(){const el=document.getElementById('storage-mode-info');if(!el)return;el.innerHTML=serverMode?(lang==='en'?'<strong style="color:var(--g600)">✓ Server mode</strong> – shared data in <code>ribby_data/</code>. On Render, persistent disk storage must be mounted to keep edits after deploys.':'<strong style="color:var(--g600)">✓ Server-Modus</strong> – gemeinsamer Speicher in <code>ribby_data/</code>. Auf Render bleiben Änderungen nach Deploys nur mit gemountetem persistentem Disk-Volume erhalten.'):(lang==='en'?'<strong style="color:#d97706">▲ Browser mode</strong> – data is stored in the browser. Please export regularly!':'<strong style="color:#d97706">▲ Browser-Modus</strong> – Daten im Browser. Bitte regelmäßig exportieren!');}
 async function reconnectServer(){const inp=document.getElementById('server-url-inp');if(inp?.value)localStorage.setItem('ribby_server_url',inp.value);const ok=await detectServer();updateServerStatus(ok);const box=document.getElementById('server-status-box');if(box){box.style.display='block';box.textContent=ok?(lang==='en'?'Status: connected to ':'Status: verbunden mit ')+API_BASE:(lang==='en'?'Status: no server found.':'Status: kein Server gefunden.');}toast(ok?'Server verbunden':'Kein Server','ok');return ok;}
 async function showServerStartHelp(){
   const box=document.getElementById('server-status-box');
