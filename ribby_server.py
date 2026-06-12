@@ -705,6 +705,24 @@ class RibbyHandler(BaseHTTPRequestHandler):
             except Exception as e:
                 self.send_json({"error": str(e)}, 400)
 
+        # ── Analyse-Verlauf-Metadaten bearbeiten ─────────────────
+        elif path.startswith("/api/history/"):
+            if not require_auth(self): return
+            hist_id = path.split("/")[-1]
+            existing = find_by_id(DATA_DIR / "history", hist_id)
+            if not existing:
+                self.send_json({"error": "Nicht gefunden"}, 404); return
+            try:
+                body = self.read_json()
+                for key in ("gps", "area"):
+                    if key in body:
+                        existing[key] = body[key]
+                existing["updated_at"] = now_iso()
+                save_item(DATA_DIR / "history", existing)
+                self.send_json(existing)
+            except Exception as e:
+                self.send_json({"error": str(e)}, 400)
+
         # ── Benutzer-Rolle ändern ─────────────────────────────────
         elif path.startswith("/api/users/"):
             if not require_admin(self): return

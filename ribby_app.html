@@ -285,6 +285,10 @@ audio{width:100%;margin-top:7px;height:30px}
 .map-side h3{font-size:14px;font-weight:700;margin:0 0 10px;color:var(--txt)}
 .map-side-section{border-top:1px solid var(--bdr2);padding-top:10px;margin-top:10px}
 .map-marker-chip.active{border-color:var(--g600)!important;background:var(--g50)!important}
+.map-marker-chip{border:1px solid var(--bdr);background:#fff;border-radius:8px;padding:8px;font-size:12px;color:var(--txt2)}
+.map-marker-main{display:flex;align-items:flex-start;gap:8px;border:0;background:transparent;padding:0;cursor:pointer;text-align:left;font:inherit;width:100%}
+.map-marker-main img,.map-marker-main .map-marker-initial{width:30px;height:30px;border-radius:50%;object-fit:cover;border:1px solid var(--bdr);flex-shrink:0}
+.map-marker-initial{display:inline-flex;align-items:center;justify-content:center;background:var(--g50);font-weight:700;color:var(--g700)}
 .map-action-row{display:flex;gap:6px;margin-top:6px;flex-wrap:wrap}
 .map-mini-btn{border:1px solid var(--bdr);background:#fff;border-radius:6px;padding:3px 7px;font-size:11px;cursor:pointer;color:var(--txt2)}
 .map-mini-btn:hover{border-color:var(--g400);color:var(--g700)}
@@ -581,7 +585,6 @@ audio{width:100%;margin-top:7px;height:30px}
     </div>
     <div class="map-layout">
       <div>
-        <div id="map-summary" class="aibox" style="margin-bottom:12px"></div>
         <div id="gps-map" style="height:560px;border-radius:12px;overflow:hidden;border:1px solid var(--bdr);background:var(--surf)"></div>
       </div>
       <aside class="map-side">
@@ -1051,6 +1054,7 @@ async function serverUpdateRefAudio(id,patch) {
 async function serverDeleteRefAudio(id){ const r=await apiFetch('/api/refaudio/'+id,{method:'DELETE'}); return r.ok; }
 async function serverLoadHistory()    { const r=await apiFetch('/api/history'); return r.ok?r.json():[]; }
 async function serverSaveHistory(e)   { const r=await apiFetch('/api/history',{method:'POST',body:JSON.stringify(e)}); return r.ok?r.json():null; }
+async function serverUpdateHistory(id,patch){ const r=await apiFetch('/api/history/'+id,{method:'PUT',body:JSON.stringify(patch)}); return r.ok?r.json():null; }
 async function serverDeleteHistory(id){ const r=await apiFetch('/api/history/'+id,{method:'DELETE'}); return r.ok; }
 async function serverLoadUsers()      { const r=await apiFetch('/api/users'); return r.ok?r.json():[]; }
 async function serverCreateUser(u)    { const r=await apiFetch('/api/users',{method:'POST',body:JSON.stringify(u)}); if(!r.ok){const e=await r.json();throw new Error(e.error||'Fehler');} return r.json(); }
@@ -2215,7 +2219,14 @@ function renderAreaStats(points, areaQ){
   });
   const catRows=Object.entries(cats).sort((a,b)=>b[1]-a[1]).map(([k,v])=>`<div style="display:flex;justify-content:space-between;font-size:12px;padding:3px 0"><span>${escHtml(k)}</span><strong>${v}</strong></div>`).join('')||'<div style="font-size:12px;color:var(--muted)">Keine Treffer</div>';
   const spRows=Object.entries(species).sort((a,b)=>b[1]-a[1]).map(([k,v])=>{const [de,sci]=k.split('|');return `<div style="font-size:12px;padding:5px 0;border-top:1px solid var(--bdr2)"><strong>${escHtml(de)}</strong><span style="float:right">${v}</span>${sci?`<br><span style="font-size:11px;color:var(--muted);font-style:italic">${escHtml(sci)}</span>`:''}</div>`;}).join('')||'<div style="font-size:12px;color:var(--muted)">Keine Arten</div>';
-  side.innerHTML=`<h3>${areaQ?'Gebiet: '+escHtml(areaQ):'Referenzkarte'}</h3><div style="font-size:12px;color:var(--muted);margin-bottom:8px">${points.length} GPS-Punkt(e)</div><div class="map-side-section"><strong style="font-size:12px">Gruppen</strong>${catRows}</div><div class="map-side-section"><strong style="font-size:12px">Unterarten / Arten</strong>${spRows}</div>`;
+  const pointRows=points.length?points.map((p,i)=>{
+    const initial=escHtml(pointInitial(p));
+    const img=p.image?`<img src="${escHtml(p.image)}" alt="" onerror="this.replaceWith(Object.assign(document.createElement('span'),{className:'map-marker-initial',textContent:'${initial}'}))">`:`<span class="map-marker-initial">${initial}</span>`;
+    const coords=(Number(p.gps.lat).toFixed(5)+', '+Number(p.gps.lon).toFixed(5));
+    const conf=p.confidence!=null?' · '+Math.round((p.confidence||0)*100)+'%':'';
+    return `<div class="map-marker-chip"><button class="map-marker-main" onclick="focusMapPoint(${i})">${img}<span style="min-width:0"><strong style="color:var(--txt)">${escHtml(p.species)}</strong>${p.scientific?`<br><span class="map-mini-meta"><em>${escHtml(p.scientific)}</em></span>`:''}<br><span class="map-mini-meta">${escHtml(p.type)}${conf}</span><br><span class="map-mini-meta">GPS: ${coords}</span>${p.area?`<br><span class="map-mini-meta">Ort: ${escHtml(p.area)}</span>`:''}</span></button><div class="map-action-row"><button class="map-mini-btn" onclick="renameMapPoint(${i})">Umbenennen</button><button class="map-mini-btn" onclick="deleteMapPoint(${i})">Löschen</button></div></div>`;
+  }).join(''):'<div style="font-size:12px;color:var(--muted)">Keine GPS-Marker für diese Suche.</div>';
+  side.innerHTML=`<h3>${areaQ?'Gebiet: '+escHtml(areaQ):'Referenzkarte'}</h3><div style="font-size:12px;color:var(--muted);margin-bottom:8px">${points.length} GPS-Punkt(e) · ${points.filter(p=>p.type==='Referenz').length} Referenz · ${points.filter(p=>p.type==='Analyse').length} Analyse</div><div class="map-side-section"><strong style="font-size:12px">Marker</strong><div style="display:flex;flex-direction:column;gap:8px;margin-top:8px">${pointRows}</div></div><div class="map-side-section"><strong style="font-size:12px">Gruppen</strong>${catRows}</div><div class="map-side-section"><strong style="font-size:12px">Unterarten / Arten</strong>${spRows}</div>`;
   refreshLang();
 }
 async function searchMapPlace(){
@@ -2258,12 +2269,6 @@ async function renderGpsMap(){
   });
   _mapPoints=points;
   renderAreaStats(points, areaQ);
-  const sum=document.getElementById('map-summary');
-  const markerHtml=points.length?`<div id="map-marker-list" style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px">${points.map((p,i)=>{
-    const img=p.image?`<img src="${escHtml(p.image)}" onerror="this.replaceWith(Object.assign(document.createElement('span'),{textContent:'${escHtml(pointInitial(p))}'}))" style="width:28px;height:28px;border-radius:50%;object-fit:cover;border:1px solid var(--bdr)">`:`<span style="width:28px;height:28px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;background:var(--g50);border:1px solid var(--bdr);font-weight:700;color:var(--g700)">${escHtml(pointInitial(p))}</span>`;
-    return `<div class="map-marker-chip" style="border:1px solid var(--bdr);background:#fff;border-radius:12px;padding:7px 9px;font-size:12px;color:var(--txt2);min-width:210px"><button onclick="focusMapPoint(${i})" style="display:flex;align-items:center;gap:7px;border:0;background:transparent;padding:0;cursor:pointer;text-align:left;font:inherit;width:100%">${img}<span><strong style="color:var(--txt)">${escHtml(p.species)}</strong><br><span class="map-mini-meta">${escHtml(p.type)} \u00b7 ${p.gps.lat.toFixed(4)}, ${p.gps.lon.toFixed(4)}</span>${p.area?`<br><span class="map-mini-meta">${escHtml(p.area)}</span>`:''}</span></button><div class="map-action-row"><button class="map-mini-btn" onclick="renameMapPoint(${i})">Umbenennen</button><button class="map-mini-btn" onclick="deleteMapPoint(${i})">L\u00f6schen</button></div></div>`;
-  }).join('')}</div>`:'<div id="map-marker-list" style="margin-top:10px;color:var(--muted);font-size:13px">Keine GPS-Marker f\u00fcr diese Suche.</div>';
-  if(sum)sum.innerHTML='<strong>'+points.length+'</strong> GPS-Punkt(e) \u00b7 '+points.filter(p=>p.type==='Referenz').length+' Referenz \u00b7 '+points.filter(p=>p.type==='Analyse').length+' Analyse'+markerHtml;
   const exact=speciesQ?points.find(p=>normMapText(p.species)===speciesQ||normMapText(p.scientific)===speciesQ):null;
   const focus=exact?points.indexOf(exact):(points.length?0:-1);
   renderMapCanvas('gps-map',points,focus,(_mapAreaFocus?.label)||areaQ||speciesQ||'Referenzkarte');
@@ -2291,6 +2296,8 @@ async function renameMapPoint(idx){
     await serverUpdateRefAudio(p.id,{area});
   } else if(p.source==='refaudio'&&!serverMode){
     const r=await dbGet('refaudio',p.id); if(r){r.area=area; await dbPut('refaudio',r);}
+  } else if(p.source==='history'&&serverMode){
+    await serverUpdateHistory(p.id,{area});
   } else if(p.source==='history'&&!serverMode){
     const r=await dbGet('history',p.id); if(r){r.area=area; await dbPut('history',r);}
   } else { toast('Dieser Punkt kann lokal nicht bearbeitet werden','err'); return; }
@@ -2302,6 +2309,7 @@ async function deleteMapPoint(idx){
   else if(p.source==='refmeta') localStorage.setItem('ribby_ref_geo',JSON.stringify(loadRefGeoMeta().filter(x=>x.id!==p.id)));
   else if(p.source==='refaudio'&&serverMode) await serverUpdateRefAudio(p.id,{gps:null,area:''});
   else if(p.source==='refaudio'&&!serverMode){const r=await dbGet('refaudio',p.id); if(r){delete r.gps; r.area=''; await dbPut('refaudio',r);}}
+  else if(p.source==='history'&&serverMode) await serverUpdateHistory(p.id,{gps:null,area:''});
   else if(p.source==='history'&&!serverMode){const r=await dbGet('history',p.id); if(r){delete r.gps; r.area=''; await dbPut('history',r);}}
   else { toast('Dieser Punkt kann lokal nicht gelöscht werden','err'); return; }
   toast('GPS-Punkt gelöscht','ok'); renderGpsMap();
