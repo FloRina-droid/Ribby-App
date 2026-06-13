@@ -44,7 +44,7 @@ ADMIN_EMAIL = os.getenv("RIBBY_ADMIN_EMAIL", "admin@ribby.app").strip().lower()
 ADMIN_PASS  = os.getenv("RIBBY_ADMIN_PASSWORD", "")
 CORS_ORIGINS= [o.strip().rstrip("/") for o in os.getenv("RIBBY_CORS_ORIGINS", "").split(",") if o.strip()]
 SESSIONS    = {}   # token → user_id
-SESSION_TTL = 86400 * 7  # 7 Tage
+SESSION_TTL = 600  # 10 Minuten
 MAX_UPLOAD_BYTES = env_int("RIBBY_MAX_UPLOAD_MB", 80) * 1024 * 1024
 
 # Datenverzeichnisse anlegen
@@ -53,6 +53,7 @@ MAX_UPLOAD_BYTES = env_int("RIBBY_MAX_UPLOAD_MB", 80) * 1024 * 1024
 (DATA_DIR / "refaudio").mkdir(parents=True, exist_ok=True)
 (DATA_DIR / "history").mkdir(parents=True, exist_ok=True)
 (DATA_DIR / "map_points").mkdir(parents=True, exist_ok=True)
+(DATA_DIR / "sessions").mkdir(parents=True, exist_ok=True)
 (DATA_DIR / "audio_files").mkdir(parents=True, exist_ok=True)
 
 # ── Hilfsfunktionen ──────────────────────────────────────────────────
@@ -269,13 +270,25 @@ def get_user_by_id(uid_: str):
 def create_session(user_id: str) -> str:
     token = secrets.token_hex(32)
     SESSIONS[token] = {"user_id": user_id, "created": time.time()}
+    save_json(DATA_DIR / "sessions" / f"{token}.json", SESSIONS[token])
     return token
 
 def get_session_user(token: str):
     s = SESSIONS.get(token)
+    if not s:
+        s = load_json(DATA_DIR / "sessions" / f"{token}.json")
+        if s:
+            SESSIONS[token] = s
     if not s: return None
     if time.time() - s["created"] > SESSION_TTL:
-        del SESSIONS[token]; return None
+        SESSIONS.pop(token, None)
+        p = DATA_DIR / "sessions" / f"{token}.json"
+        if p.exists():
+            p.unlink()
+        return None
+    s["created"] = time.time()
+    SESSIONS[token] = s
+    save_json(DATA_DIR / "sessions" / f"{token}.json", s)
     return get_user_by_id(s["user_id"])
 
 def auth_from_request(handler) -> dict | None:
@@ -348,6 +361,9 @@ class RibbyHandler(BaseHTTPRequestHandler):
         origin = self.headers.get("Origin", "").rstrip("/")
         if "*" in CORS_ORIGINS:
             self.send_header("Access-Control-Allow-Origin", "*")
+        elif origin == "null":
+            self.send_header("Access-Control-Allow-Origin", "null")
+            self.send_header("Vary", "Origin")
         elif origin and origin in CORS_ORIGINS:
             self.send_header("Access-Control-Allow-Origin", origin)
             self.send_header("Vary", "Origin")
@@ -559,7 +575,11 @@ class RibbyHandler(BaseHTTPRequestHandler):
         elif path == "/api/auth/logout":
             auth = self.headers.get("Authorization","")
             if auth.startswith("Bearer "):
-                SESSIONS.pop(auth[7:], None)
+                token = auth[7:]
+                SESSIONS.pop(token, None)
+                p = DATA_DIR / "sessions" / f"{token}.json"
+                if p.exists():
+                    p.unlink()
             self.send_json({"status": "ok"})
 
         # ── Benutzer anlegen (Admin) ──────────────────────────────

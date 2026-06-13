@@ -973,11 +973,17 @@ let _mapPoints   = [];
 let _mapView     = {lat:51.1657,lon:10.4515,zoom:6};
 let _mapAreaFocus= null;
 let _sessionTimer= null;
-const SESSION_TIMEOUT_MS = 30*60*1000;
+const SESSION_TIMEOUT_MS = 10*60*1000;
+function markActivity(){ localStorage.setItem('ribby_last_activity', String(Date.now())); }
+function sessionStillFresh(){
+  const last=Number(localStorage.getItem('ribby_last_activity')||0);
+  return !!last && (Date.now()-last)<SESSION_TIMEOUT_MS;
+}
 
 // ── SERVER-SYNC ───────────────────────────────────────────────────
 let API_BASE   = null;
 let serverMode = false;
+const DEFAULT_REMOTE_SERVER = 'https://ribby-app.onrender.com';
 
 async function detectServer() {
   const stored = localStorage.getItem('ribby_server_url');
@@ -985,6 +991,7 @@ async function detectServer() {
   if (location.protocol === 'http:' || location.protocol === 'https:') {
     candidates.push(location.origin);
   }
+  candidates.push(DEFAULT_REMOTE_SERVER);
   if (stored) candidates.push(stored);
   candidates.push('http://localhost:7432');
   if (location.hostname && !['localhost','127.0.0.1'].includes(location.hostname)) {
@@ -1172,6 +1179,7 @@ async function doLogin() {
       curUser    = data.user;
       authToken  = data.token;
       localStorage.setItem('ribby_token',authToken);
+      markActivity();
       localStorage.setItem(dsgvoKeyFor(email),'1');
       gdprOk = true;
       afterLogin();
@@ -1182,7 +1190,7 @@ async function doLogin() {
         const req = tx.objectStore('users').index('email').get(email);
         req.onsuccess = ()=>{
           const u=req.result;
-          if (u && u.password===hash) { curUser=u; localStorage.setItem(dsgvoKeyFor(email),'1'); gdprOk=true; afterLogin(); res(); }
+          if (u && u.password===hash) { curUser=u; markActivity(); localStorage.setItem(dsgvoKeyFor(email),'1'); gdprOk=true; afterLogin(); res(); }
           else { toast('Falsche E-Mail oder Passwort','err'); rej(); }
         };
         req.onerror = ()=>{ toast('Datenbankfehler','err'); rej(); };
@@ -1216,6 +1224,7 @@ function afterLogin() {
 function doLogout() {
   curUser=null; authToken='';
   localStorage.removeItem('ribby_token');
+  localStorage.removeItem('ribby_last_activity');
   sessionStorage.removeItem('ribby_uid');
   clearTimeout(_sessionTimer);
   document.getElementById('main-nav').style.display='none';
@@ -1228,6 +1237,7 @@ function doLogout() {
 // ── SESSION ───────────────────────────────────────────────────────
 function startSessionTimer() {
   clearTimeout(_sessionTimer);
+  markActivity();
   _sessionTimer = setTimeout(()=>{ if(curUser){ toast('Sitzung abgelaufen','err'); setTimeout(doLogout,1500); } },SESSION_TIMEOUT_MS);
 }
 ['click','keydown','touchstart'].forEach(ev=>document.addEventListener(ev,()=>{ if(curUser) startSessionTimer(); },{passive:true}));
@@ -2744,8 +2754,13 @@ async function init() {
     await dbPut('users',{id:uid(),name:'Administrator',email:'admin@ribby.app',password:hash,role:'admin',created_at:new Date().toISOString()});
   }
   // Session wiederherstellen
+  if(authToken && !sessionStillFresh()){
+    localStorage.removeItem('ribby_token');
+    localStorage.removeItem('ribby_last_activity');
+    authToken='';
+  }
   const sid = sessionStorage.getItem('ribby_uid');
-  if (sid) {
+  if (sid && sessionStillFresh()) {
     try {
       if (serverMode) {
         const r = await apiFetch('/api/me');
@@ -2757,7 +2772,7 @@ async function init() {
     } catch {}
   }
   // Token-basierte Session
-  if (authToken && serverMode) {
+  if (authToken && serverMode && sessionStillFresh()) {
     try {
       const r = await apiFetch('/api/me');
       if (r.ok) { curUser=await r.json(); afterLogin(); return; }
