@@ -1,0 +1,1264 @@
+{
+  "reference_images": 447,
+  "species": 14,
+  "design": "28 fresh iNaturalist research-grade photos (2 per species). Canonical photo IDs, observations and normalized creator names excluded from all 447 references. Input follows app JPEG normalization. Configuration selected by 5-fold grouped validation before this test.",
+  "baseline": "DINOv2, 4 references per species, weighted top two",
+  "optimized": "BioCLIP, 16 diverse references per species, normalized class centroid",
+  "metrics": {
+    "dinov2": {
+      "correct": 15,
+      "n": 28,
+      "top1": 0.5357142857142857,
+      "top3_correct": 20,
+      "top3": 0.7142857142857143
+    },
+    "bioclip": {
+      "correct": 15,
+      "n": 28,
+      "top1": 0.5357142857142857,
+      "top3_correct": 24,
+      "top3": 0.8571428571428571
+    }
+  },
+  "model_selection": {
+    "design": "5-fold validation grouped by normalized photographer name; all reference images, no fresh test image used",
+    "selected": {
+      "model": "bioclip",
+      "method": "centroid",
+      "reference_limit": 16,
+      "n": 447,
+      "correct": 288,
+      "top1": 0.6442953020134228,
+      "top3": 0.912751677852349
+    },
+    "candidates": [
+      {
+        "model": "bioclip",
+        "method": "centroid",
+        "reference_limit": 16,
+        "n": 447,
+        "correct": 288,
+        "top1": 0.6442953020134228,
+        "top3": 0.912751677852349
+      },
+      {
+        "model": "bioclip",
+        "method": "top3",
+        "reference_limit": 16,
+        "n": 447,
+        "correct": 269,
+        "top1": 0.6017897091722595,
+        "top3": 0.8993288590604027
+      },
+      {
+        "model": "bioclip",
+        "method": "weighted2",
+        "reference_limit": 16,
+        "n": 447,
+        "correct": 266,
+        "top1": 0.5950782997762863,
+        "top3": 0.8993288590604027
+      },
+      {
+        "model": "bioclip",
+        "method": "nearest",
+        "reference_limit": 16,
+        "n": 447,
+        "correct": 261,
+        "top1": 0.5838926174496645,
+        "top3": 0.883668903803132
+      },
+      {
+        "model": "original",
+        "method": "centroid",
+        "reference_limit": 16,
+        "n": 447,
+        "correct": 218,
+        "top1": 0.48769574944071586,
+        "top3": 0.8187919463087249
+      },
+      {
+        "model": "original",
+        "method": "weighted2",
+        "reference_limit": 16,
+        "n": 447,
+        "correct": 214,
+        "top1": 0.47874720357941836,
+        "top3": 0.8120805369127517
+      },
+      {
+        "model": "original",
+        "method": "top3",
+        "reference_limit": 16,
+        "n": 447,
+        "correct": 205,
+        "top1": 0.45861297539149887,
+        "top3": 0.825503355704698
+      },
+      {
+        "model": "original",
+        "method": "nearest",
+        "reference_limit": 16,
+        "n": 447,
+        "correct": 196,
+        "top1": 0.43847874720357943,
+        "top3": 0.785234899328859
+      }
+    ]
+  },
+  "rows": [
+    {
+      "id": "92dfb549fc26d536f568305c0c93c6cc",
+      "expected": "Rana temporaria",
+      "source_url": "https://www.inaturalist.org/photos/740547937",
+      "dinov2": {
+        "top1": false,
+        "top3": true,
+        "matches": [
+          {
+            "species": "Rana dalmatina",
+            "score": 0.7142150917174304
+          },
+          {
+            "species": "Rana temporaria",
+            "score": 0.6614331983751363
+          },
+          {
+            "species": "Pelophylax esculentus",
+            "score": 0.644809405768406
+          }
+        ]
+      },
+      "bioclip": {
+        "top1": false,
+        "top3": true,
+        "matches": [
+          {
+            "species": "Rana arvalis",
+            "score": 0.7724536518586224
+          },
+          {
+            "species": "Rana temporaria",
+            "score": 0.7446914418521682
+          },
+          {
+            "species": "Rana dalmatina",
+            "score": 0.7097703946771254
+          }
+        ]
+      }
+    },
+    {
+      "id": "9aa27f336b8b9faf50aa0d6567450624",
+      "expected": "Rana temporaria",
+      "source_url": "https://www.inaturalist.org/photos/740400498",
+      "dinov2": {
+        "top1": false,
+        "top3": false,
+        "matches": [
+          {
+            "species": "Pelophylax esculentus",
+            "score": 0.6925817934025327
+          },
+          {
+            "species": "Rana arvalis",
+            "score": 0.6809575148168012
+          },
+          {
+            "species": "Rana dalmatina",
+            "score": 0.6734309918027596
+          }
+        ]
+      },
+      "bioclip": {
+        "top1": false,
+        "top3": true,
+        "matches": [
+          {
+            "species": "Rana dalmatina",
+            "score": 0.6508408143417689
+          },
+          {
+            "species": "Rana arvalis",
+            "score": 0.6490652171664045
+          },
+          {
+            "species": "Rana temporaria",
+            "score": 0.6270237640935965
+          }
+        ]
+      }
+    },
+    {
+      "id": "c608061cd87c7118b1fa74971038a9df",
+      "expected": "Rana arvalis",
+      "source_url": "https://www.inaturalist.org/photos/711709060",
+      "dinov2": {
+        "top1": true,
+        "top3": true,
+        "matches": [
+          {
+            "species": "Rana arvalis",
+            "score": 0.5339828405868567
+          },
+          {
+            "species": "Rana temporaria",
+            "score": 0.45950018221613476
+          },
+          {
+            "species": "Bufotes viridis",
+            "score": 0.45045092191663383
+          }
+        ]
+      },
+      "bioclip": {
+        "top1": true,
+        "top3": true,
+        "matches": [
+          {
+            "species": "Rana arvalis",
+            "score": 0.735476521440463
+          },
+          {
+            "species": "Rana dalmatina",
+            "score": 0.6556410392989749
+          },
+          {
+            "species": "Rana temporaria",
+            "score": 0.6494565040622212
+          }
+        ]
+      }
+    },
+    {
+      "id": "3cd3ae07eb349c52455de186e515b863",
+      "expected": "Rana arvalis",
+      "source_url": "https://www.inaturalist.org/photos/705352256",
+      "dinov2": {
+        "top1": false,
+        "top3": false,
+        "matches": [
+          {
+            "species": "Pelophylax ridibundus",
+            "score": 0.4103504725397953
+          },
+          {
+            "species": "Alytes obstetricans",
+            "score": 0.3258064647038813
+          },
+          {
+            "species": "Pelophylax lessonae",
+            "score": 0.3224551185704987
+          }
+        ]
+      },
+      "bioclip": {
+        "top1": true,
+        "top3": true,
+        "matches": [
+          {
+            "species": "Rana arvalis",
+            "score": 0.5891525786776105
+          },
+          {
+            "species": "Pelophylax ridibundus",
+            "score": 0.5710123482663523
+          },
+          {
+            "species": "Rana temporaria",
+            "score": 0.5517282338949266
+          }
+        ]
+      }
+    },
+    {
+      "id": "27884b51a6f67301c77d3440bb33f0b9",
+      "expected": "Rana dalmatina",
+      "source_url": "https://www.inaturalist.org/photos/696280754",
+      "dinov2": {
+        "top1": true,
+        "top3": true,
+        "matches": [
+          {
+            "species": "Rana dalmatina",
+            "score": 0.4673166160499109
+          },
+          {
+            "species": "Rana arvalis",
+            "score": 0.39702424202597464
+          },
+          {
+            "species": "Pelophylax esculentus",
+            "score": 0.37751395809064786
+          }
+        ]
+      },
+      "bioclip": {
+        "top1": false,
+        "top3": true,
+        "matches": [
+          {
+            "species": "Rana arvalis",
+            "score": 0.777962489332792
+          },
+          {
+            "species": "Rana dalmatina",
+            "score": 0.7389632082282447
+          },
+          {
+            "species": "Rana temporaria",
+            "score": 0.7127694704401527
+          }
+        ]
+      }
+    },
+    {
+      "id": "7679b1d26f757589c87c8f0a69ed1936",
+      "expected": "Rana dalmatina",
+      "source_url": "https://www.inaturalist.org/photos/695243480",
+      "dinov2": {
+        "top1": true,
+        "top3": true,
+        "matches": [
+          {
+            "species": "Rana dalmatina",
+            "score": 0.6534886602548059
+          },
+          {
+            "species": "Rana arvalis",
+            "score": 0.4832621150798445
+          },
+          {
+            "species": "Rana temporaria",
+            "score": 0.4531291829968629
+          }
+        ]
+      },
+      "bioclip": {
+        "top1": false,
+        "top3": true,
+        "matches": [
+          {
+            "species": "Rana arvalis",
+            "score": 0.7749839105018381
+          },
+          {
+            "species": "Rana dalmatina",
+            "score": 0.723826586725476
+          },
+          {
+            "species": "Rana temporaria",
+            "score": 0.6863623179117327
+          }
+        ]
+      }
+    },
+    {
+      "id": "281ff3db5261b4c64fb15bb95e7ed78b",
+      "expected": "Bufo bufo",
+      "source_url": "https://www.inaturalist.org/photos/742218073",
+      "dinov2": {
+        "top1": true,
+        "top3": true,
+        "matches": [
+          {
+            "species": "Bufo bufo",
+            "score": 0.2988425313061358
+          },
+          {
+            "species": "Pelobates fuscus",
+            "score": 0.27092975953912585
+          },
+          {
+            "species": "Rana arvalis",
+            "score": 0.26928241643835094
+          }
+        ]
+      },
+      "bioclip": {
+        "top1": true,
+        "top3": true,
+        "matches": [
+          {
+            "species": "Bufo bufo",
+            "score": 0.5552044750125376
+          },
+          {
+            "species": "Alytes obstetricans",
+            "score": 0.5484812418441415
+          },
+          {
+            "species": "Bombina variegata",
+            "score": 0.5347188540573031
+          }
+        ]
+      }
+    },
+    {
+      "id": "7c313c812f96c634037ea6587bf4e773",
+      "expected": "Bufo bufo",
+      "source_url": "https://www.inaturalist.org/photos/741766303",
+      "dinov2": {
+        "top1": true,
+        "top3": true,
+        "matches": [
+          {
+            "species": "Bufo bufo",
+            "score": 0.6330702244477836
+          },
+          {
+            "species": "Rana temporaria",
+            "score": 0.6001709598473907
+          },
+          {
+            "species": "Pelobates fuscus",
+            "score": 0.5896768026734218
+          }
+        ]
+      },
+      "bioclip": {
+        "top1": true,
+        "top3": true,
+        "matches": [
+          {
+            "species": "Bufo bufo",
+            "score": 0.7405484891070006
+          },
+          {
+            "species": "Rana temporaria",
+            "score": 0.5467318470343806
+          },
+          {
+            "species": "Epidalea calamita",
+            "score": 0.5431866656351328
+          }
+        ]
+      }
+    },
+    {
+      "id": "1f771ca1e5d7bc27fea05b43d0673e0a",
+      "expected": "Bufotes viridis",
+      "source_url": "https://www.inaturalist.org/photos/725985050",
+      "dinov2": {
+        "top1": false,
+        "top3": true,
+        "matches": [
+          {
+            "species": "Bufo bufo",
+            "score": 0.5424576125412561
+          },
+          {
+            "species": "Bufotes viridis",
+            "score": 0.5392098963306694
+          },
+          {
+            "species": "Pelobates fuscus",
+            "score": 0.5134609419989125
+          }
+        ]
+      },
+      "bioclip": {
+        "top1": true,
+        "top3": true,
+        "matches": [
+          {
+            "species": "Bufotes viridis",
+            "score": 0.7897475400010163
+          },
+          {
+            "species": "Epidalea calamita",
+            "score": 0.6904792287784717
+          },
+          {
+            "species": "Pelobates fuscus",
+            "score": 0.6878204586987715
+          }
+        ]
+      }
+    },
+    {
+      "id": "41302b3f354aa29b1fc82cd48ec2fd27",
+      "expected": "Bufotes viridis",
+      "source_url": "https://www.inaturalist.org/photos/721713397",
+      "dinov2": {
+        "top1": true,
+        "top3": true,
+        "matches": [
+          {
+            "species": "Bufotes viridis",
+            "score": 0.5889617677887831
+          },
+          {
+            "species": "Pelobates fuscus",
+            "score": 0.504272531229137
+          },
+          {
+            "species": "Pelophylax esculentus",
+            "score": 0.499794502710737
+          }
+        ]
+      },
+      "bioclip": {
+        "top1": true,
+        "top3": true,
+        "matches": [
+          {
+            "species": "Bufotes viridis",
+            "score": 0.8240036620964697
+          },
+          {
+            "species": "Epidalea calamita",
+            "score": 0.6752083565440368
+          },
+          {
+            "species": "Pelobates fuscus",
+            "score": 0.6680272837520741
+          }
+        ]
+      }
+    },
+    {
+      "id": "617cfb0b59ef6a40b589d3e9a5c3bb6a",
+      "expected": "Epidalea calamita",
+      "source_url": "https://www.inaturalist.org/photos/664324178",
+      "dinov2": {
+        "top1": false,
+        "top3": false,
+        "matches": [
+          {
+            "species": "Rana dalmatina",
+            "score": 0.5210874535429835
+          },
+          {
+            "species": "Bombina bombina",
+            "score": 0.47925314786208795
+          },
+          {
+            "species": "Bufotes viridis",
+            "score": 0.4773667746713388
+          }
+        ]
+      },
+      "bioclip": {
+        "top1": false,
+        "top3": false,
+        "matches": [
+          {
+            "species": "Bufo bufo",
+            "score": 0.5916236337760696
+          },
+          {
+            "species": "Alytes obstetricans",
+            "score": 0.5838062488013447
+          },
+          {
+            "species": "Bombina variegata",
+            "score": 0.5402958726025181
+          }
+        ]
+      }
+    },
+    {
+      "id": "17ee6fa49b1d67c40f65aca51f7e3164",
+      "expected": "Epidalea calamita",
+      "source_url": "https://www.inaturalist.org/photos/659510380",
+      "dinov2": {
+        "top1": false,
+        "top3": false,
+        "matches": [
+          {
+            "species": "Bufotes viridis",
+            "score": 0.5582748331998926
+          },
+          {
+            "species": "Bufo bufo",
+            "score": 0.4867425316769337
+          },
+          {
+            "species": "Bombina bombina",
+            "score": 0.4803975847142523
+          }
+        ]
+      },
+      "bioclip": {
+        "top1": false,
+        "top3": true,
+        "matches": [
+          {
+            "species": "Bufotes viridis",
+            "score": 0.6351631653292885
+          },
+          {
+            "species": "Epidalea calamita",
+            "score": 0.6023018188728201
+          },
+          {
+            "species": "Alytes obstetricans",
+            "score": 0.5508956903239035
+          }
+        ]
+      }
+    },
+    {
+      "id": "e382d1ff5c21b4c6e2a26e0a2d2d9d92",
+      "expected": "Pelobates fuscus",
+      "source_url": "https://www.inaturalist.org/photos/455690777",
+      "dinov2": {
+        "top1": true,
+        "top3": true,
+        "matches": [
+          {
+            "species": "Pelobates fuscus",
+            "score": 0.5668895764085362
+          },
+          {
+            "species": "Rana dalmatina",
+            "score": 0.5285196388746092
+          },
+          {
+            "species": "Pelophylax lessonae",
+            "score": 0.5203750235059146
+          }
+        ]
+      },
+      "bioclip": {
+        "top1": true,
+        "top3": true,
+        "matches": [
+          {
+            "species": "Pelobates fuscus",
+            "score": 0.6065150622029013
+          },
+          {
+            "species": "Alytes obstetricans",
+            "score": 0.5770134387157025
+          },
+          {
+            "species": "Rana temporaria",
+            "score": 0.4919442048076943
+          }
+        ]
+      }
+    },
+    {
+      "id": "8bb885589e7622d708b72c83367cd3aa",
+      "expected": "Pelobates fuscus",
+      "source_url": "https://www.inaturalist.org/photos/415299033",
+      "dinov2": {
+        "top1": true,
+        "top3": true,
+        "matches": [
+          {
+            "species": "Pelobates fuscus",
+            "score": 0.632466115043433
+          },
+          {
+            "species": "Rana temporaria",
+            "score": 0.6108732690671642
+          },
+          {
+            "species": "Bufo bufo",
+            "score": 0.5767150834623662
+          }
+        ]
+      },
+      "bioclip": {
+        "top1": true,
+        "top3": true,
+        "matches": [
+          {
+            "species": "Pelobates fuscus",
+            "score": 0.7133479676523748
+          },
+          {
+            "species": "Alytes obstetricans",
+            "score": 0.6202172301700358
+          },
+          {
+            "species": "Epidalea calamita",
+            "score": 0.5677146514838532
+          }
+        ]
+      }
+    },
+    {
+      "id": "bfdd68911dddfc1bc6c21f54ace36f48",
+      "expected": "Pelophylax ridibundus",
+      "source_url": "https://www.inaturalist.org/photos/729828906",
+      "dinov2": {
+        "top1": false,
+        "top3": false,
+        "matches": [
+          {
+            "species": "Pelophylax lessonae",
+            "score": 0.72031698899672
+          },
+          {
+            "species": "Rana arvalis",
+            "score": 0.5879169941811592
+          },
+          {
+            "species": "Bombina bombina",
+            "score": 0.569500580934652
+          }
+        ]
+      },
+      "bioclip": {
+        "top1": true,
+        "top3": true,
+        "matches": [
+          {
+            "species": "Pelophylax ridibundus",
+            "score": 0.6806613866056415
+          },
+          {
+            "species": "Bombina bombina",
+            "score": 0.6310948865093307
+          },
+          {
+            "species": "Bombina variegata",
+            "score": 0.6244739636142731
+          }
+        ]
+      }
+    },
+    {
+      "id": "72f9e750a4d2303e737ba2f9df785cd7",
+      "expected": "Pelophylax ridibundus",
+      "source_url": "https://www.inaturalist.org/photos/729636115",
+      "dinov2": {
+        "top1": true,
+        "top3": true,
+        "matches": [
+          {
+            "species": "Pelophylax ridibundus",
+            "score": 0.3813224985576865
+          },
+          {
+            "species": "Bombina bombina",
+            "score": 0.3217626163024918
+          },
+          {
+            "species": "Pelophylax lessonae",
+            "score": 0.23997616633813862
+          }
+        ]
+      },
+      "bioclip": {
+        "top1": false,
+        "top3": false,
+        "matches": [
+          {
+            "species": "Pelophylax lessonae",
+            "score": 0.35945383437632
+          },
+          {
+            "species": "Bombina bombina",
+            "score": 0.3501799530361864
+          },
+          {
+            "species": "Pelophylax esculentus",
+            "score": 0.34740706330010374
+          }
+        ]
+      }
+    },
+    {
+      "id": "7b98f48f4648ab61513c0646012b24ae",
+      "expected": "Pelophylax lessonae",
+      "source_url": "https://www.inaturalist.org/photos/537502709",
+      "dinov2": {
+        "top1": false,
+        "top3": false,
+        "matches": [
+          {
+            "species": "Bufotes viridis",
+            "score": 0.4097813142301213
+          },
+          {
+            "species": "Epidalea calamita",
+            "score": 0.39417477483711993
+          },
+          {
+            "species": "Rana arvalis",
+            "score": 0.33815730751218054
+          }
+        ]
+      },
+      "bioclip": {
+        "top1": false,
+        "top3": false,
+        "matches": [
+          {
+            "species": "Rana arvalis",
+            "score": 0.6758558014656944
+          },
+          {
+            "species": "Bufotes viridis",
+            "score": 0.670042076843279
+          },
+          {
+            "species": "Pelophylax ridibundus",
+            "score": 0.6684658073996391
+          }
+        ]
+      }
+    },
+    {
+      "id": "9d3527f3ee9cd74ca9017fc0a7374461",
+      "expected": "Pelophylax lessonae",
+      "source_url": "https://www.inaturalist.org/photos/537423096",
+      "dinov2": {
+        "top1": true,
+        "top3": true,
+        "matches": [
+          {
+            "species": "Pelophylax lessonae",
+            "score": 0.72684087415589
+          },
+          {
+            "species": "Rana arvalis",
+            "score": 0.6144250355816129
+          },
+          {
+            "species": "Pelophylax ridibundus",
+            "score": 0.5881724261421903
+          }
+        ]
+      },
+      "bioclip": {
+        "top1": true,
+        "top3": true,
+        "matches": [
+          {
+            "species": "Pelophylax lessonae",
+            "score": 0.8264927137056369
+          },
+          {
+            "species": "Pelophylax esculentus",
+            "score": 0.825159769664971
+          },
+          {
+            "species": "Pelophylax ridibundus",
+            "score": 0.7704558364211188
+          }
+        ]
+      }
+    },
+    {
+      "id": "7f3adf2b2d4527467cb03797e63076b7",
+      "expected": "Pelophylax esculentus",
+      "source_url": "https://www.inaturalist.org/photos/420868072",
+      "dinov2": {
+        "top1": false,
+        "top3": true,
+        "matches": [
+          {
+            "species": "Hyla arborea",
+            "score": 0.3501307207608563
+          },
+          {
+            "species": "Pelophylax ridibundus",
+            "score": 0.25260297855817193
+          },
+          {
+            "species": "Pelophylax esculentus",
+            "score": 0.20853942729944716
+          }
+        ]
+      },
+      "bioclip": {
+        "top1": false,
+        "top3": false,
+        "matches": [
+          {
+            "species": "Pelophylax ridibundus",
+            "score": 0.6051963037905299
+          },
+          {
+            "species": "Rana arvalis",
+            "score": 0.5926009638512744
+          },
+          {
+            "species": "Pelophylax lessonae",
+            "score": 0.5430101514483598
+          }
+        ]
+      }
+    },
+    {
+      "id": "92350dbe8af25203f62209f169306540",
+      "expected": "Pelophylax esculentus",
+      "source_url": "https://www.inaturalist.org/photos/420368696",
+      "dinov2": {
+        "top1": false,
+        "top3": true,
+        "matches": [
+          {
+            "species": "Rana arvalis",
+            "score": 0.6627949386652141
+          },
+          {
+            "species": "Pelophylax esculentus",
+            "score": 0.6531915388217768
+          },
+          {
+            "species": "Rana temporaria",
+            "score": 0.6151260291551816
+          }
+        ]
+      },
+      "bioclip": {
+        "top1": true,
+        "top3": true,
+        "matches": [
+          {
+            "species": "Pelophylax esculentus",
+            "score": 0.8370586809427087
+          },
+          {
+            "species": "Pelophylax lessonae",
+            "score": 0.8202838823925023
+          },
+          {
+            "species": "Pelophylax ridibundus",
+            "score": 0.7345435099826406
+          }
+        ]
+      }
+    },
+    {
+      "id": "054c6c2a5be81623e158d9628801c5e6",
+      "expected": "Hyla arborea",
+      "source_url": "https://www.inaturalist.org/photos/632558497",
+      "dinov2": {
+        "top1": true,
+        "top3": true,
+        "matches": [
+          {
+            "species": "Hyla arborea",
+            "score": 0.658966266130493
+          },
+          {
+            "species": "Rana dalmatina",
+            "score": 0.6448232813235649
+          },
+          {
+            "species": "Pelophylax esculentus",
+            "score": 0.5420945580313794
+          }
+        ]
+      },
+      "bioclip": {
+        "top1": true,
+        "top3": true,
+        "matches": [
+          {
+            "species": "Hyla arborea",
+            "score": 0.7082720197563439
+          },
+          {
+            "species": "Pelophylax esculentus",
+            "score": 0.4137513205645799
+          },
+          {
+            "species": "Rana dalmatina",
+            "score": 0.4091700075981535
+          }
+        ]
+      }
+    },
+    {
+      "id": "254307a17269c7dd77a25b25317df7e5",
+      "expected": "Hyla arborea",
+      "source_url": "https://www.inaturalist.org/photos/621758893",
+      "dinov2": {
+        "top1": true,
+        "top3": true,
+        "matches": [
+          {
+            "species": "Hyla arborea",
+            "score": 0.5223259100619172
+          },
+          {
+            "species": "Rana arvalis",
+            "score": 0.5138612073491464
+          },
+          {
+            "species": "Pelophylax esculentus",
+            "score": 0.5035321867408205
+          }
+        ]
+      },
+      "bioclip": {
+        "top1": true,
+        "top3": true,
+        "matches": [
+          {
+            "species": "Hyla arborea",
+            "score": 0.778082781716438
+          },
+          {
+            "species": "Pelophylax esculentus",
+            "score": 0.6224212566710583
+          },
+          {
+            "species": "Pelophylax lessonae",
+            "score": 0.5877637564823207
+          }
+        ]
+      }
+    },
+    {
+      "id": "49db2240875adfa14d3f71d50233d845",
+      "expected": "Bombina bombina",
+      "source_url": "https://www.inaturalist.org/photos/488278476",
+      "dinov2": {
+        "top1": true,
+        "top3": true,
+        "matches": [
+          {
+            "species": "Bombina bombina",
+            "score": 0.619479345624678
+          },
+          {
+            "species": "Pelophylax lessonae",
+            "score": 0.5867863257544088
+          },
+          {
+            "species": "Pelophylax ridibundus",
+            "score": 0.5281802106214588
+          }
+        ]
+      },
+      "bioclip": {
+        "top1": false,
+        "top3": true,
+        "matches": [
+          {
+            "species": "Rana arvalis",
+            "score": 0.701105523916296
+          },
+          {
+            "species": "Bombina bombina",
+            "score": 0.6820679483745073
+          },
+          {
+            "species": "Pelophylax ridibundus",
+            "score": 0.6662627240513171
+          }
+        ]
+      }
+    },
+    {
+      "id": "78628e0e3d5e6b412c3892035a59c4c4",
+      "expected": "Bombina bombina",
+      "source_url": "https://www.inaturalist.org/photos/485169159",
+      "dinov2": {
+        "top1": true,
+        "top3": true,
+        "matches": [
+          {
+            "species": "Bombina bombina",
+            "score": 0.6663016452616579
+          },
+          {
+            "species": "Bufotes viridis",
+            "score": 0.3319565460765288
+          },
+          {
+            "species": "Alytes obstetricans",
+            "score": 0.2866382676136795
+          }
+        ]
+      },
+      "bioclip": {
+        "top1": true,
+        "top3": true,
+        "matches": [
+          {
+            "species": "Bombina bombina",
+            "score": 0.6137944646476732
+          },
+          {
+            "species": "Pelobates fuscus",
+            "score": 0.5247115358852203
+          },
+          {
+            "species": "Bombina variegata",
+            "score": 0.5245571326384885
+          }
+        ]
+      }
+    },
+    {
+      "id": "49f517f87b833464be3090d47328540a",
+      "expected": "Bombina variegata",
+      "source_url": "https://www.inaturalist.org/photos/684242889",
+      "dinov2": {
+        "top1": true,
+        "top3": true,
+        "matches": [
+          {
+            "species": "Bombina variegata",
+            "score": 0.6174491486276608
+          },
+          {
+            "species": "Alytes obstetricans",
+            "score": 0.4672300612580139
+          },
+          {
+            "species": "Rana arvalis",
+            "score": 0.46137499939783577
+          }
+        ]
+      },
+      "bioclip": {
+        "top1": false,
+        "top3": true,
+        "matches": [
+          {
+            "species": "Bufotes viridis",
+            "score": 0.7257518609469368
+          },
+          {
+            "species": "Bombina variegata",
+            "score": 0.724547766061197
+          },
+          {
+            "species": "Pelobates fuscus",
+            "score": 0.6817272947334809
+          }
+        ]
+      }
+    },
+    {
+      "id": "af1d2a2b3def2493cb15b762676b1447",
+      "expected": "Bombina variegata",
+      "source_url": "https://www.inaturalist.org/photos/684125890",
+      "dinov2": {
+        "top1": false,
+        "top3": true,
+        "matches": [
+          {
+            "species": "Pelophylax ridibundus",
+            "score": 0.43945676401172096
+          },
+          {
+            "species": "Bombina bombina",
+            "score": 0.4195891278642175
+          },
+          {
+            "species": "Bombina variegata",
+            "score": 0.3214050754536567
+          }
+        ]
+      },
+      "bioclip": {
+        "top1": false,
+        "top3": true,
+        "matches": [
+          {
+            "species": "Rana arvalis",
+            "score": 0.5550333176435817
+          },
+          {
+            "species": "Bombina bombina",
+            "score": 0.5549328490508797
+          },
+          {
+            "species": "Bombina variegata",
+            "score": 0.5255095651573868
+          }
+        ]
+      }
+    },
+    {
+      "id": "e4c642f3a1b6c4d2327339a4204d2ecc",
+      "expected": "Alytes obstetricans",
+      "source_url": "https://www.inaturalist.org/photos/586963609",
+      "dinov2": {
+        "top1": false,
+        "top3": false,
+        "matches": [
+          {
+            "species": "Pelobates fuscus",
+            "score": 0.6220960993160145
+          },
+          {
+            "species": "Bufo bufo",
+            "score": 0.6056987724315553
+          },
+          {
+            "species": "Rana temporaria",
+            "score": 0.5888775176352289
+          }
+        ]
+      },
+      "bioclip": {
+        "top1": false,
+        "top3": true,
+        "matches": [
+          {
+            "species": "Pelobates fuscus",
+            "score": 0.7349482671568321
+          },
+          {
+            "species": "Bufotes viridis",
+            "score": 0.7309977488908673
+          },
+          {
+            "species": "Alytes obstetricans",
+            "score": 0.714877703087415
+          }
+        ]
+      }
+    },
+    {
+      "id": "5c78caebca47f6cf367857d765f9f21e",
+      "expected": "Alytes obstetricans",
+      "source_url": "https://www.inaturalist.org/photos/549568216",
+      "dinov2": {
+        "top1": false,
+        "top3": false,
+        "matches": [
+          {
+            "species": "Bufo bufo",
+            "score": 0.5031047739406742
+          },
+          {
+            "species": "Pelobates fuscus",
+            "score": 0.49843492052958
+          },
+          {
+            "species": "Bufotes viridis",
+            "score": 0.4970343590231556
+          }
+        ]
+      },
+      "bioclip": {
+        "top1": true,
+        "top3": true,
+        "matches": [
+          {
+            "species": "Alytes obstetricans",
+            "score": 0.7204040006672409
+          },
+          {
+            "species": "Pelobates fuscus",
+            "score": 0.691976667277763
+          },
+          {
+            "species": "Bufotes viridis",
+            "score": 0.6282059298229944
+          }
+        ]
+      }
+    }
+  ],
+  "limitations": [
+    "Small collection; no field validation or expert relabeling.",
+    "Possible pretraining overlap of foundation models is unknown.",
+    "Similar amphibian species may require additional observations."
+  ]
+}
