@@ -9,6 +9,7 @@ read = lambda path: json.loads((ROOT / path).read_text(encoding='utf-8'))
 ui = read('reports/system_calibration_species.json')
 evaluation = read('reports/calibration_evaluation_v4.json')
 calibration = read('image_calibration.json')
+integrity = read('image_reference_integrity.json')
 app_hash = hashlib.sha256((ROOT / 'ribby_app.html').read_bytes()).hexdigest()
 assert ui['pass'] and ui['app_sha256'] == evaluation['app_sha256'] == app_hash
 assert evaluation['calibration_id'] == calibration['id']
@@ -39,6 +40,7 @@ for model, rows in ui['models'].items():
             assert saved['score_type'] == actual['score_type'] == 'calibrated_probability'
             assert saved['calibration_id'] == actual['calibration_id'] == calibration['id']
             assert saved['compared_species'] == 14 and saved['nRefs'] == actual['refs'] == 16
+            assert saved['reference']['image_sha256'] == integrity['images'][saved['reference']['id']]
         cases += 1
 report = {'pass': True, 'cases': cases, 'app_sha256': app_hash,
           'calibration_id': calibration['id'], 'rankings_equal': True,

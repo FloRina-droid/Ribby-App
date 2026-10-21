@@ -4,7 +4,7 @@ Alle definierten technischen Prüfungen dieses Stands bestehen. Das ist keine 10
 
 | Prüfung | Ergebnis |
 |---|---:|
-| Backend | 40/40 |
+| Backend | 43/43 |
 | Echte Bildmodelle mit 68 neuen Fotos, allen 14 Arten, Bestätigung und GPS | 136/136 |
 | Persistierte Prognosen, Kalibrierung und Georeferenz | 136/136 |
 | Gespeicherte Ergebnisse je Art wieder geöffnet | 14/14 |
@@ -29,6 +29,6 @@ Die Kalibrierung ändert nur die Interpretation der Prozentwerte, keine Artvorhe
 
 ## Prüfsummen
 
-- `ribby_app.html`: `cfc98f65bed1396e27d55c097d6182278224bec2734f777075a213e8fbe82f68`
+- `ribby_app.html`: `4073c8f916e0f068800942ae0c470dc72e2862e14c997be6c9b3588ce82f2339`
 - `ribby_server.py`: `2373dcdb1f0f599daa8500aa46a5c96a6e1678218cc03ca8b1ffb4e4df78cae4`
-- `ribby_images.py`: `2737223cf10046173d118bfbdb66b96d5555fc7f0bf1c6037e747fe28cf99123`
+- `ribby_images.py`: `c660e04058a0403890a408d5f59e7eca64828897eebe8d1719dbec8606032d1a`

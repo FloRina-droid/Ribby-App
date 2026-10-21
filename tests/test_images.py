@@ -282,9 +282,41 @@ class LicenseTests(unittest.TestCase):
             (vector_root/f'{ref_id}.json').write_text(json.dumps(payload))
             result={'references':[{'id':ref_id}]}
             self.assertEqual(len(images.with_precomputed_vectors(tmp,result,key)['references'][0]['features']['vector']),512)
+            enriched=images.with_precomputed_vectors(tmp,result,key)['references'][0]
+            self.assertEqual(enriched['image_sha256'],payload['image_sha256'])
+            self.assertEqual(enriched['features']['image_sha256'],payload['image_sha256'])
             (ref_root/f'{ref_id}.bin').write_bytes(b'changed')
             self.assertNotIn('features',images.with_precomputed_vectors(tmp,result,key)['references'][0])
             with self.assertRaises(ValueError):images.with_precomputed_vectors(tmp,result,'../../other')
+
+
+    def test_stale_search_features_are_never_forwarded_without_validation(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            key='bioclip-v1-fp16-22a18d2-v1';ref_id='b'*32
+            result={'references':[{'id':ref_id,'image_sha256':'a'*64,'features':{'model_key':key,'vector':[1.0]+[0.0]*511}}]}
+            ref=images.with_precomputed_vectors(tmp,result,key)['references'][0]
+            self.assertNotIn('features',ref);self.assertNotIn('image_sha256',ref)
+            self.assertIn('features',result['references'][0])
+
+    def test_current_photo_hash_is_available_even_without_a_precomputed_vector(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            key='bioclip-v1-fp16-22a18d2-v1';ref_id='c'*32
+            root=Path(tmp)/'image_refs';root.mkdir();photo=b'\xff\xd8\xffupdated-photo'
+            (root/(ref_id+'.bin')).write_bytes(photo)
+            ref=images.with_precomputed_vectors(tmp,{'references':[{'id':ref_id}]},key)['references'][0]
+            self.assertEqual(ref['image_sha256'],hashlib.sha256(photo).hexdigest())
+            self.assertNotIn('features',ref)
+
+    def test_boolean_vectors_cannot_masquerade_as_numeric_features(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            key='bioclip-v1-fp16-22a18d2-v1';ref_id='d'*32
+            root=Path(tmp)/'image_refs';root.mkdir();photo=b'\xff\xd8\xffphoto'
+            (root/(ref_id+'.bin')).write_bytes(photo)
+            folder=Path(tmp)/'image_vectors'/key;folder.mkdir(parents=True)
+            payload={'model_key':key,'reference_id':ref_id,'image_sha256':hashlib.sha256(photo).hexdigest(),'vector':[True]+[False]*511}
+            (folder/(ref_id+'.json')).write_text(json.dumps(payload))
+            ref=images.with_precomputed_vectors(tmp,{'references':[{'id':ref_id}]},key)['references'][0]
+            self.assertNotIn('features',ref)
 
 
 class ApiTests(unittest.TestCase):

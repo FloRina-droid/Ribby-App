@@ -53,11 +53,11 @@ Referenzfoto, Quelle, Lizenz und Urheber bleiben unverändert. Private Nutzerfot
 - 136/136 neue vollständige App-Abläufe mit beiden echten Modellen; alle 68 Fotos, Bestätigung, Fundort/GPS und Verlauf.
 - 136/136 Vorschlagslisten, Wahrscheinlichkeiten und tatsächlich gespeicherte GPS-/Art-/Kalibrierungsdaten gegen die getrennte Auswertung geprüft; maximale Wahrscheinlichkeitsabweichung 6.7e-08.
 - 7/7 gezielte Browserprüfungen für Prozentanzeige, manuelle Korrektur, Bestandswechsel und alte Ergebnisse.
-- 40/40 Backendtests; JavaScript-Syntax, Ranking, Wahrscheinlichkeitsnormierung, Rückfälle, Zahlenformat und CSV geprüft.
+- 43/43 Backendtests; JavaScript-Syntax, Ranking, Wahrscheinlichkeitsnormierung, Rückfälle, Zahlenformat und CSV geprüft.
 - 18/18 Fehlerszenarien, 13/13 Ablaufprüfungen einschließlich 24 Wiederholungsanalysen; private Referenzen für 14 Arten sowie 4/4 Audio-/GPS-/Artanlage-/Sprachregressionen bestanden.
 - Statisches HTML und CSS sind vollständig gleich geblieben (`design_preservation_v4.json`). Kamera/Smartphone-Prüfungen verwenden Chromium-Testgeräte, keine echte Android-/iPhone-Hardware.
 Reproduktion: [Systemtests](../tests/SYSTEM_TESTS.md) und [Kalibrierungsprüfung](../tests/accuracy/CALIBRATION.md). Die Prüfungen beziehen sich auf die unten genannten Dateiprüfsummen.
 
-- App-SHA-256: `cfc98f65bed1396e27d55c097d6182278224bec2734f777075a213e8fbe82f68`
+- App-SHA-256: `4073c8f916e0f068800942ae0c470dc72e2862e14c997be6c9b3588ce82f2339`
 - Kalibrierungs-SHA-256: `4c1a7a21c2b8729963b3e744fda6fce9d2bc2bedc4f372e449206fdd64ccc49d`
 - Kalibrierungs-ID: `temperature-v1:2959f9ace4fd539902704d04bb7e07f8de675ed62be4201ff5516bf827d91f3a`

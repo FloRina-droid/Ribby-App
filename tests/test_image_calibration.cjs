@@ -4,11 +4,12 @@ const ctx=vm.createContext({console,Blob,document:{addEventListener(){},getEleme
 vm.runInContext(html.slice(html.indexOf('// Photo mode:'),html.indexOf('// ── INIT ')),ctx);
 function fixture(n=14){
  const rows=Array.from({length:n},(_,i)=>{const vector=[Math.cos(i*2*Math.PI/n),Math.sin(i*2*Math.PI/n)];return {species_id:'id'+i,scientific_name:'Sp '+i,queryVector:[1,0],references:[{vector,similarity:Math.max(0,vector[0]),reference:{id:'ref'+i,license:'CC0 1.0'}}]};});
- const model_key=vm.runInContext('imageModelKey()',ctx),species=rows.map(r=>r.scientific_name.toLowerCase());
+ const model_key=vm.runInContext('imageModelKey()',ctx),species=rows.map(r=>r.scientific_name.toLowerCase()),hashes={};
+ rows.forEach((row,i)=>{hashes['ref'+i]=(i+1).toString(16).padStart(64,'0');row.references[0].reference.image_sha256=hashes['ref'+i];});
  return {rows,config:{method:'metric',alpha:1,model_key,dimensions:2,species,center:[0,0],weights:[[1,0],[0,1]]},
-  calibration:{method:'temperature-scaling',id:'fixture-calibration',species,reference_sets:{'1':Object.fromEntries(species.map((s,i)=>[s,['ref'+i]]))},models:{bioclip:{model_key,profiles:{'1':{temperature:.1,species_count:n,model_key}}}}}};
+  integrity:{calibration_id:'fixture-calibration',images:hashes},calibration:{method:'temperature-scaling',id:'fixture-calibration',species,reference_sets:{'1':Object.fromEntries(species.map((s,i)=>[s,['ref'+i]]))},models:{bioclip:{model_key,profiles:{'1':{temperature:.1,species_count:n,model_key}}}}}};
 }
-function ranked(f,all=true){ctx.f=f;return vm.runInContext(`rankImageSpecies(f.rows,'centroid',f.config,f.calibration,${all})`,ctx);}
+function ranked(f,all=true){ctx.f=f;return vm.runInContext(`rankImageSpecies(f.rows,'centroid',f.config,f.calibration,${all},f.integrity)`,ctx);}
 const base=fixture(),result=ranked(base);
 assert.equal(result.length,14);assert.equal(result[0].score_type,'calibrated_probability');
 assert.ok(Math.abs(result.reduce((s,r)=>s+r.probability,0)-1)<1e-12);
@@ -16,7 +17,9 @@ const shown=ranked(base,false);assert.equal(shown.length,5);assert.ok(shown.redu
 assert.ok(result.every((r,i)=>i===0||r.probability<=result[i-1].probability));
 for(const change of [f=>f.rows.pop(),f=>f.rows[0].references[0].reference.id='changed',f=>f.rows[0].references[0].reference.license='private',
  f=>f.rows[0].scientific_name='New species',f=>f.calibration.models.bioclip.profiles['1'].temperature=NaN,
- f=>f.calibration.models.bioclip.profiles['1'].model_key='other-model',f=>f.rows[0].references.push({...f.rows[0].references[0]})]){
+ f=>f.calibration.models.bioclip.profiles['1'].model_key='other-model',f=>f.rows[0].references.push({...f.rows[0].references[0]}),
+ f=>f.rows[0].references[0].reference.image_sha256='f'.repeat(64),f=>delete f.rows[0].references[0].reference.image_sha256,
+ f=>f.integrity.calibration_id='wrong-calibration',f=>f.config.weights=[]]){
  const f=fixture();change(f);assert.ok(ranked(f).every(r=>r.score_type==='similarity'));
 }
 ctx.fixtureResult=result;

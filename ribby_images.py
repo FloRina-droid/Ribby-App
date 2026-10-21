@@ -442,10 +442,23 @@ def with_precomputed_vectors(data_dir, result, model_key):
     enriched = []
     for original in result.get('references', []):
         ref = dict(original)
+        # Cached/search metadata must never smuggle unvalidated feature data.
+        ref.pop('features', None)
+        ref.pop('image_sha256', None)
         if not re.fullmatch('[a-f0-9]{32}', str(ref.get('id', ''))):
             continue
         path = Path(data_dir)/'image_vectors'/model_key/f"{ref['id']}.json"
         image_path = Path(data_dir)/'image_refs'/f"{ref['id']}.bin"
+        image_hash = None
+        try:
+            if image_path.stat().st_size > 4 * 1024 * 1024:
+                raise ValueError('Referenzbild zu groß')
+            photo = image_path.read_bytes()
+            image_mime(photo)
+            image_hash = hashlib.sha256(photo).hexdigest()
+            ref['image_sha256'] = image_hash
+        except (OSError, ValueError):
+            pass
         try:
             if path.stat().st_size > 65536:
                 raise ValueError('Feature-Datei zu groß')
@@ -453,11 +466,11 @@ def with_precomputed_vectors(data_dir, result, model_key):
             vector = saved['vector']
             if saved.get('model_key') != model_key or saved.get('reference_id') != ref['id'] or len(vector) != VECTOR_MODELS[model_key]:
                 raise ValueError('Feature-Datei passt nicht zum Modell')
-            if not all(isinstance(x,(float,int)) and math.isfinite(x) for x in vector) or abs(sum(x*x for x in vector)-1) > .01:
+            if not all(type(x) in (float,int) and math.isfinite(x) for x in vector) or abs(sum(x*x for x in vector)-1) > .01:
                 raise ValueError('Ungültige Bildmerkmale')
-            if hashlib.sha256(image_path.read_bytes()).hexdigest() != saved.get('image_sha256'):
+            if image_hash is None or image_hash != saved.get('image_sha256'):
                 raise ValueError('Referenzbild wurde geändert')
-            ref['features'] = {'model_key':model_key, 'vector':vector}
+            ref['features'] = {'model_key':model_key, 'image_sha256':image_hash, 'vector':vector}
         except (OSError,ValueError,KeyError,TypeError):
             pass  # A missing/invalid precomputed vector falls back to local inference.
         enriched.append(ref)

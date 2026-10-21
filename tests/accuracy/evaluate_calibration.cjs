@@ -28,7 +28,12 @@ const output={calibration_id:calibration.id,calibration_sha256:crypto.createHash
  primary:{},regression:{},ranking_changes:0,normalization_errors:0};
 for(model of ['bioclip','dinov2']){
  const key=metric.models[model].model_key;
- const all=manifest.map(sp=>({...sp,references:sp.references.map(ref=>({...ref,vector:vector('accuracy_work/v3/references',key,ref.id)}))}));
+ const integrity=JSON.parse(fs.readFileSync('image_reference_integrity.json','utf8'));
+ const all=manifest.map(sp=>({...sp,references:sp.references.map(ref=>{
+  const saved=JSON.parse(fs.readFileSync(`accuracy_work/v3/references/image_vectors/${key}/${ref.id}.json`,'utf8'));
+  assert.equal(saved.image_sha256,integrity.images[ref.id]);
+  return {...ref,vector:saved.vector,image_sha256:saved.image_sha256};
+ })}));
  output.primary[model]={};output.regression[model]={};
  for(const limit of [8,16,32])for(const [kind,queries,folder] of [['primary',probe,'accuracy_work/calibration/probe'],['regression',previous,'accuracy_work/v3/holdout']]){
   const rows=[];

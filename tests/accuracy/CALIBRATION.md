@@ -84,6 +84,7 @@ Prüfung braucht kein erneutes Training. Nur für die Offline-Entwicklung benöt
 ```powershell
 $env:OPENBLAS_NUM_THREADS = '2'
 python tests/accuracy/fit_calibration.py --embed
+python tests/accuracy/bind_reference_integrity.py
 ```
 
 Das Skript liest ausschließlich die 896 öffentlichen Referenzvektoren. Fotografen
@@ -94,6 +95,12 @@ ausgewählt. Eine positive Temperatur je Modell/Referenzlimit wird aus den
 Out-of-fold-Vorhersagen gelernt. `--embed` ersetzt die Parameter auch in der
 HTML-Datei. Nach einem solchen Schreibvorgang müssen Auswertung und App-Prüfungen
 erneut laufen. Die unabhängigen Prüffotos dürfen nicht zum Nachjustieren dienen.
+
+`bind_reference_integrity.py` passt keine Parameter an. Es vergleicht die
+896 Foto-Dateien im Seed mit beiden gespeicherten Modellvektoren und schreibt
+deren SHA-256-Bindung nach `image_reference_integrity.json` sowie in die HTML-Datei.
+Die Registry gehört zur jeweiligen Kalibrierungskennung. Bei geänderten Fotos
+oder einer nicht passenden Registry fällt die Anzeige auf Bildähnlichkeit zurück.
 
 Die Trefferchance gilt nur innerhalb der 14 bekannten Arten und für exakt die
 geprüften öffentlichen Referenzsets. Geänderte oder private Bestände erhalten

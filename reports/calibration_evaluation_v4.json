@@ -2,7 +2,7 @@
   "calibration_id": "temperature-v1:2959f9ace4fd539902704d04bb7e07f8de675ed62be4201ff5516bf827d91f3a",
   "calibration_sha256": "4c1a7a21c2b8729963b3e744fda6fce9d2bc2bedc4f372e449206fdd64ccc49d",
   "metric_sha256": "205d9f12587344242428ea393a4a0560a9993d99c44308ece82779a54724d784",
-  "app_sha256": "cfc98f65bed1396e27d55c097d6182278224bec2734f777075a213e8fbe82f68",
+  "app_sha256": "4073c8f916e0f068800942ae0c470dc72e2862e14c997be6c9b3588ce82f2339",
   "primary": {
     "bioclip": {
       "8": {

@@ -94,6 +94,20 @@ werden angezeigt. Ähnliche Arten, schlechte Fotos und Arten außerhalb der
 Bibliothek können falsche Vorschläge erzeugen. Eine fachliche Bestätigung ist
 erforderlich. Es wurde keine Feldstudie zur Bestimmungsgenauigkeit durchgeführt.
 
+Zusätzlich zu den Referenz-IDs werden die SHA-256-Prüfsummen der tatsächlich
+verwendeten Fotos mit dem eingefrorenen Bestand in `image_reference_integrity.json`
+verglichen. Geänderte Bilddateien unter gleicher ID erhalten keine kalibrierte
+Trefferchance. Die Kalibrierungsparameter und die Bildmodelle bleiben unverändert.
+
+Gespeicherte Browsermerkmale sind an Modellkennung und Foto-Prüfsumme gebunden.
+Ändert sich ein öffentliches oder privates Foto bei gleicher ID, werden seine
+Merkmale neu berechnet. Alte Cache-Einträge ohne diese Bindung werden beim ersten
+Einsatz erneuert. Passende Einträge und geprüfte mitgelieferte Vektoren bleiben
+ohne erneute Modellberechnung nutzbar. Fehlt eine Prüfsumme, wird sie aus dem
+Foto ermittelt; passt ein Download nicht mehr zur angekündigten Prüfsumme, wird
+dieses Referenzfoto für den laufenden Vergleich verworfen. Nutzerfotos werden
+für diese Prüfungen weiterhin nur lokal verarbeitet.
+
 Bei manueller Artkorrektur gehört die Zahl zur gewählten Art. Fehlt für sie ein
 gespeicherter Modellwert, wird keine Prozentzahl ergänzt. Verlauf und CSV erhalten
 den Score-Typ und die Kalibrierungskennung; alte Bildähnlichkeiten werden nicht
@@ -216,11 +230,14 @@ Prozentanzeige. Fehlerfälle und eigene Referenzen werden zusätzlich geprüft.
 Reproduktion: [Systemtest-Anleitung](tests/SYSTEM_TESTS.md).
 Der zusätzliche [Veröffentlichungstest](reports/release_v5.md) prüft den normalen
 Serverstart ausschließlich mit den drei Teilen und alle installierten Dateien.
+Die zusätzlichen Cache- und Prüfsummenprüfungen sind im
+[Optimierungsbericht V6](reports/release_v6.md) dokumentiert.
 
 ```powershell
 python -m unittest discover -s tests -p test_images.py -v
 node tests/test_image_logic.cjs
 node tests/test_image_calibration.cjs
+node tests/test_image_cache.cjs
 python -m py_compile ribby_server.py ribby_images.py
 ```
 

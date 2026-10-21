@@ -1,6 +1,6 @@
 {
-  "started_at": "2026-10-18T12:07:34.179Z",
-  "app_sha256": "cfc98f65bed1396e27d55c097d6182278224bec2734f777075a213e8fbe82f68",
+  "started_at": "2026-10-21T07:01:54.334Z",
+  "app_sha256": "4073c8f916e0f068800942ae0c470dc72e2862e14c997be6c9b3588ce82f2339",
   "input": "68 independent photos; normal app upload and real model inference",
   "manifest": "reports/accuracy_calibration_probe.json",
   "technical_cases": [
@@ -128,11 +128,11 @@
             "calibration_id": "temperature-v1:2959f9ace4fd539902704d04bb7e07f8de675ed62be4201ff5516bf827d91f3a"
           }
         ],
-        "history_id": "8c7494f0f3149c33",
+        "history_id": "51890ac859c727a8",
         "top1": false,
         "top3": true,
         "technical_pass": true,
-        "elapsed_ms": 11679
+        "elapsed_ms": 24471
       },
       {
         "id": "0e44c817e5764e1267bd45dfa2b4cab8",
@@ -185,11 +185,11 @@
             "calibration_id": "temperature-v1:2959f9ace4fd539902704d04bb7e07f8de675ed62be4201ff5516bf827d91f3a"
           }
         ],
-        "history_id": "27f2e85005a4138b",
+        "history_id": "c47a85bdec50e0f9",
         "top1": false,
         "top3": false,
         "technical_pass": true,
-        "elapsed_ms": 3051
+        "elapsed_ms": 5360
       },
       {
         "id": "c8f32d4d12308c5c1693a774ec842af6",
@@ -242,11 +242,11 @@
             "calibration_id": "temperature-v1:2959f9ace4fd539902704d04bb7e07f8de675ed62be4201ff5516bf827d91f3a"
           }
         ],
-        "history_id": "ed87e99ba0df67d2",
+        "history_id": "6167d3fc7cfc1a69",
         "top1": true,
         "top3": true,
         "technical_pass": true,
-        "elapsed_ms": 2999
+        "elapsed_ms": 5400
       },
       {
         "id": "62e3a9cd6c611de4717cc8b7abb0c75d",
@@ -299,11 +299,11 @@
             "calibration_id": "temperature-v1:2959f9ace4fd539902704d04bb7e07f8de675ed62be4201ff5516bf827d91f3a"
           }
         ],
-        "history_id": "b5664ca4e27596e0",
+        "history_id": "5e3f2f721558ccd3",
         "top1": false,
         "top3": false,
         "technical_pass": true,
-        "elapsed_ms": 2953
+        "elapsed_ms": 5141
       },
       {
         "id": "547fffae057911b36514586264fd7411",
@@ -356,11 +356,11 @@
             "calibration_id": "temperature-v1:2959f9ace4fd539902704d04bb7e07f8de675ed62be4201ff5516bf827d91f3a"
           }
         ],
-        "history_id": "3f42f93ad14e0b62",
+        "history_id": "8e1ae3a1ae95be43",
         "top1": false,
         "top3": true,
         "technical_pass": true,
-        "elapsed_ms": 2915
+        "elapsed_ms": 5391
       },
       {
         "id": "ec81019b1858f02c1e0ba694782eed1d",
@@ -413,11 +413,11 @@
             "calibration_id": "temperature-v1:2959f9ace4fd539902704d04bb7e07f8de675ed62be4201ff5516bf827d91f3a"
           }
         ],
-        "history_id": "55b8dc914cc23a0f",
+        "history_id": "1ba6951f4b45bb4c",
         "top1": true,
         "top3": true,
         "technical_pass": true,
-        "elapsed_ms": 2991
+        "elapsed_ms": 5297
       },
       {
         "id": "98fcc3163c248c7af0c491a8b7754941",
@@ -470,11 +470,11 @@
             "calibration_id": "temperature-v1:2959f9ace4fd539902704d04bb7e07f8de675ed62be4201ff5516bf827d91f3a"
           }
         ],
-        "history_id": "c82e111237d30ed6",
+        "history_id": "761918845159d280",
         "top1": false,
         "top3": true,
         "technical_pass": true,
-        "elapsed_ms": 2931
+        "elapsed_ms": 5033
       },
       {
         "id": "f65501dd011099fbbbf5dc453520999d",
@@ -527,11 +527,11 @@
             "calibration_id": "temperature-v1:2959f9ace4fd539902704d04bb7e07f8de675ed62be4201ff5516bf827d91f3a"
           }
         ],
-        "history_id": "5c71873e709d7f24",
+        "history_id": "ac59ec922f69a2bd",
         "top1": false,
         "top3": true,
         "technical_pass": true,
-        "elapsed_ms": 2934
+        "elapsed_ms": 4567
       },
       {
         "id": "406ca484dd123782562f9fcafc55d286",
@@ -584,11 +584,11 @@
             "calibration_id": "temperature-v1:2959f9ace4fd539902704d04bb7e07f8de675ed62be4201ff5516bf827d91f3a"
           }
         ],
-        "history_id": "1f109ed80c61a199",
+        "history_id": "0e6b4fd83f11f7de",
         "top1": true,
         "top3": true,
         "technical_pass": true,
-        "elapsed_ms": 2864
+        "elapsed_ms": 2370
       },
       {
         "id": "fabcc538573824da4df8f2fb78ef1aff",
@@ -641,11 +641,11 @@
             "calibration_id": "temperature-v1:2959f9ace4fd539902704d04bb7e07f8de675ed62be4201ff5516bf827d91f3a"
           }
         ],
-        "history_id": "a07f7f65f08e8c1e",
+        "history_id": "383aa01bbede107a",
         "top1": false,
         "top3": true,
         "technical_pass": true,
-        "elapsed_ms": 2936
+        "elapsed_ms": 2452
       },
       {
         "id": "0f6e37c5fc30d82e37be3ab8b18e6e3c",
@@ -698,11 +698,11 @@
             "calibration_id": "temperature-v1:2959f9ace4fd539902704d04bb7e07f8de675ed62be4201ff5516bf827d91f3a"
           }
         ],
-        "history_id": "b419e0530145077a",
+        "history_id": "8e446cb53235ad63",
         "top1": true,
         "top3": true,
         "technical_pass": true,
-        "elapsed_ms": 2967
+        "elapsed_ms": 2360
       },
       {
         "id": "529f55c9c8d92b1ca967ecaea32e89a0",
@@ -755,11 +755,11 @@
             "calibration_id": "temperature-v1:2959f9ace4fd539902704d04bb7e07f8de675ed62be4201ff5516bf827d91f3a"
           }
         ],
-        "history_id": "86784608fa5babcd",
+        "history_id": "3f1fc45726548a4b",
         "top1": true,
         "top3": true,
         "technical_pass": true,
-        "elapsed_ms": 3194
+        "elapsed_ms": 2612
       },
       {
         "id": "59e73615eb6ae6d4b1106b996266a008",
@@ -812,11 +812,11 @@
             "calibration_id": "temperature-v1:2959f9ace4fd539902704d04bb7e07f8de675ed62be4201ff5516bf827d91f3a"
           }
         ],
-        "history_id": "e61ae0ce3475af83",
+        "history_id": "afdae33a274bab67",
         "top1": true,
         "top3": true,
         "technical_pass": true,
-        "elapsed_ms": 3129
+        "elapsed_ms": 2847
       },
       {
         "id": "74ef5c233f2e42566c51ecd669a4ae43",
@@ -869,11 +869,11 @@
             "calibration_id": "temperature-v1:2959f9ace4fd539902704d04bb7e07f8de675ed62be4201ff5516bf827d91f3a"
           }
         ],
-        "history_id": "29fe59247c190d25",
+        "history_id": "67de166a82d816ea",
         "top1": true,
         "top3": true,
         "technical_pass": true,
-        "elapsed_ms": 2998
+        "elapsed_ms": 2852
       },
       {
         "id": "7add91bba51e699f762500f896daa0cc",
@@ -926,11 +926,11 @@
             "calibration_id": "temperature-v1:2959f9ace4fd539902704d04bb7e07f8de675ed62be4201ff5516bf827d91f3a"
           }
         ],
-        "history_id": "d2fff0dd0ee4f1ff",
+        "history_id": "7b782f9803870ba7",
         "top1": true,
         "top3": true,
         "technical_pass": true,
-        "elapsed_ms": 2930
+        "elapsed_ms": 2767
       },
       {
         "id": "c2bf256189074e6851f239125fa7616e",
@@ -983,11 +983,11 @@
             "calibration_id": "temperature-v1:2959f9ace4fd539902704d04bb7e07f8de675ed62be4201ff5516bf827d91f3a"
           }
         ],
-        "history_id": "cbc28b1ebe8e5533",
+        "history_id": "6f55916bfb8fe6cc",
         "top1": true,
         "top3": true,
         "technical_pass": true,
-        "elapsed_ms": 2968
+        "elapsed_ms": 2963
       },
       {
         "id": "93de835541076e4dc393bc1741188d0d",
@@ -1040,11 +1040,11 @@
             "calibration_id": "temperature-v1:2959f9ace4fd539902704d04bb7e07f8de675ed62be4201ff5516bf827d91f3a"
           }
         ],
-        "history_id": "9b2cba298495c37f",
+        "history_id": "c0993d2e0ea29c4e",
         "top1": true,
         "top3": true,
         "technical_pass": true,
-        "elapsed_ms": 2942
+        "elapsed_ms": 2866
       },
       {
         "id": "572c0ae4c8946dfa454876a260cf5869",
@@ -1097,11 +1097,11 @@
             "calibration_id": "temperature-v1:2959f9ace4fd539902704d04bb7e07f8de675ed62be4201ff5516bf827d91f3a"
           }
         ],
-        "history_id": "f86e075fb198d2a0",
+        "history_id": "ef06ec5ca6dca847",
         "top1": false,
         "top3": true,
         "technical_pass": true,
-        "elapsed_ms": 2882
+        "elapsed_ms": 3019
       },
       {
         "id": "b8d4196056d5aab5cc0852556b99281b",
@@ -1154,11 +1154,11 @@
             "calibration_id": "temperature-v1:2959f9ace4fd539902704d04bb7e07f8de675ed62be4201ff5516bf827d91f3a"
           }
         ],
-        "history_id": "e5b25630a1133542",
+        "history_id": "78cd54d8931925dc",
         "top1": true,
         "top3": true,
         "technical_pass": true,
-        "elapsed_ms": 3061
+        "elapsed_ms": 2865
       },
       {
         "id": "f2bb54944032718eee7dc3b4abd07c49",
@@ -1211,11 +1211,11 @@
             "calibration_id": "temperature-v1:2959f9ace4fd539902704d04bb7e07f8de675ed62be4201ff5516bf827d91f3a"
           }
         ],
-        "history_id": "817a408d393f285d",
+        "history_id": "7b082de7a89a03a5",
         "top1": true,
         "top3": true,
         "technical_pass": true,
-        "elapsed_ms": 3073
+        "elapsed_ms": 3085
       },
       {
         "id": "2546b9b11d4cad5f88084a3024fa2132",
@@ -1268,11 +1268,11 @@
             "calibration_id": "temperature-v1:2959f9ace4fd539902704d04bb7e07f8de675ed62be4201ff5516bf827d91f3a"
           }
         ],
-        "history_id": "aeedca22671c8a33",
+        "history_id": "589e15e68c369528",
         "top1": true,
         "top3": true,
         "technical_pass": true,
-        "elapsed_ms": 2945
+        "elapsed_ms": 2988
       },
       {
         "id": "0f33fda4d4e4ba2f6ccbe1fb81bc18c9",
@@ -1325,11 +1325,11 @@
             "calibration_id": "temperature-v1:2959f9ace4fd539902704d04bb7e07f8de675ed62be4201ff5516bf827d91f3a"
           }
         ],
-        "history_id": "57ca4dd080bd5114",
+        "history_id": "1e620f9aa1e64b26",
         "top1": true,
         "top3": true,
         "technical_pass": true,
-        "elapsed_ms": 2952
+        "elapsed_ms": 2980
       },
       {
         "id": "a1ee544ee30a114d67a3420949fabc08",
@@ -1382,11 +1382,11 @@
             "calibration_id": "temperature-v1:2959f9ace4fd539902704d04bb7e07f8de675ed62be4201ff5516bf827d91f3a"
           }
         ],
-        "history_id": "d1e9cfeeb0736c00",
+        "history_id": "721ae9ba3d4c5266",
         "top1": true,
         "top3": true,
         "technical_pass": true,
-        "elapsed_ms": 2962
+        "elapsed_ms": 2847
       },
       {
         "id": "d5a9a4d85bf5bef32dbbd09c1644e8fe",
@@ -1439,11 +1439,11 @@
             "calibration_id": "temperature-v1:2959f9ace4fd539902704d04bb7e07f8de675ed62be4201ff5516bf827d91f3a"
           }
         ],
-        "history_id": "b7fac5bdaf90e878",
+        "history_id": "b2355c03b81d5aef",
         "top1": true,
         "top3": true,
         "technical_pass": true,
-        "elapsed_ms": 2913
+        "elapsed_ms": 2860
       },
       {
         "id": "8965ef2646315d7337cf9324cfcd2a50",
@@ -1496,11 +1496,11 @@
             "calibration_id": "temperature-v1:2959f9ace4fd539902704d04bb7e07f8de675ed62be4201ff5516bf827d91f3a"
           }
         ],
-        "history_id": "9121d01ca5c49681",
+        "history_id": "d126808643e64794",
         "top1": true,
         "top3": true,
         "technical_pass": true,
-        "elapsed_ms": 2933
+        "elapsed_ms": 2696
       },
       {
         "id": "233e1b453f2331fa86cf553298a9f8df",
@@ -1553,11 +1553,11 @@
             "calibration_id": "temperature-v1:2959f9ace4fd539902704d04bb7e07f8de675ed62be4201ff5516bf827d91f3a"
           }
         ],
-        "history_id": "9877df28d78c91a3",
+        "history_id": "b418270df62919fd",
         "top1": true,
         "top3": true,
         "technical_pass": true,
-        "elapsed_ms": 2955
+        "elapsed_ms": 2905
       },
       {
         "id": "162c78be8cad947a1d7cf995b8a3691e",
@@ -1610,11 +1610,11 @@
             "calibration_id": "temperature-v1:2959f9ace4fd539902704d04bb7e07f8de675ed62be4201ff5516bf827d91f3a"
           }
         ],
-        "history_id": "285f207de0155f17",
+        "history_id": "e579dccede5baea3",
         "top1": false,
         "top3": false,
         "technical_pass": true,
-        "elapsed_ms": 2846
+        "elapsed_ms": 2966
       },
       {
         "id": "8449aa446b0f2e5daa8e9a08f71df620",
@@ -1667,11 +1667,11 @@
             "calibration_id": "temperature-v1:2959f9ace4fd539902704d04bb7e07f8de675ed62be4201ff5516bf827d91f3a"
           }
         ],
-        "history_id": "a3e95d266aab5a6a",
+        "history_id": "6285a5b361e36d5a",
         "top1": true,
         "top3": true,
         "technical_pass": true,
-        "elapsed_ms": 2881
+        "elapsed_ms": 2838
       },
       {
         "id": "bf7362c0e7c0c7433ac0a01509704f78",
@@ -1724,11 +1724,11 @@
             "calibration_id": "temperature-v1:2959f9ace4fd539902704d04bb7e07f8de675ed62be4201ff5516bf827d91f3a"
           }
         ],
-        "history_id": "ec0bd067ea6eb318",
+        "history_id": "5e18941e7999a878",
         "top1": false,
         "top3": false,
         "technical_pass": true,
-        "elapsed_ms": 2900
+        "elapsed_ms": 2879
       },
       {
         "id": "9d8367816a40c007b1781dd4919964ab",
@@ -1781,11 +1781,11 @@
             "calibration_id": "temperature-v1:2959f9ace4fd539902704d04bb7e07f8de675ed62be4201ff5516bf827d91f3a"
           }
         ],
-        "history_id": "cecc89f85537dfe9",
+        "history_id": "6381355d5efbdab2",
         "top1": true,
         "top3": true,
         "technical_pass": true,
-        "elapsed_ms": 2998
+        "elapsed_ms": 2916
       },
       {
         "id": "fa3cb51ebbe82d590a9ed9ed73b80f21",
@@ -1838,11 +1838,11 @@
             "calibration_id": "temperature-v1:2959f9ace4fd539902704d04bb7e07f8de675ed62be4201ff5516bf827d91f3a"
           }
         ],
-        "history_id": "83be1ce9fe397e2b",
+        "history_id": "9b65c7ac437ddaee",
         "top1": true,
         "top3": true,
         "technical_pass": true,
-        "elapsed_ms": 3104
+        "elapsed_ms": 2851
       },
       {
         "id": "2a31dca2d1c39a07902ac40b9b53526c",
@@ -1895,11 +1895,11 @@
             "calibration_id": "temperature-v1:2959f9ace4fd539902704d04bb7e07f8de675ed62be4201ff5516bf827d91f3a"
           }
         ],
-        "history_id": "167729b1bff6fa59",
+        "history_id": "6ed9cca301f6f228",
         "top1": true,
         "top3": true,
         "technical_pass": true,
-        "elapsed_ms": 3069
+        "elapsed_ms": 2863
       },
       {
         "id": "f6c665b439b5af27c1abc1003bd45699",
@@ -1952,11 +1952,11 @@
             "calibration_id": "temperature-v1:2959f9ace4fd539902704d04bb7e07f8de675ed62be4201ff5516bf827d91f3a"
           }
         ],
-        "history_id": "dd70fe4ff5594595",
+        "history_id": "0aa664b82af96e76",
         "top1": true,
         "top3": true,
         "technical_pass": true,
-        "elapsed_ms": 2976
+        "elapsed_ms": 2689
       },
       {
         "id": "b5d59e8b4364d37314d05f27746c136e",
@@ -2009,11 +2009,11 @@
             "calibration_id": "temperature-v1:2959f9ace4fd539902704d04bb7e07f8de675ed62be4201ff5516bf827d91f3a"
           }
         ],
-        "history_id": "5f20016b4d66fe15",
+        "history_id": "06c08accc3c5bfdb",
         "top1": true,
         "top3": true,
         "technical_pass": true,
-        "elapsed_ms": 2862
+        "elapsed_ms": 2760
       },
       {
         "id": "1afa40788f2f79cc5ffaceca10179414",
@@ -2066,11 +2066,11 @@
             "calibration_id": "temperature-v1:2959f9ace4fd539902704d04bb7e07f8de675ed62be4201ff5516bf827d91f3a"
           }
         ],
-        "history_id": "dc1b399393663ce9",
+        "history_id": "a4bba929a62123e9",
         "top1": false,
         "top3": true,
         "technical_pass": true,
-        "elapsed_ms": 2908
+        "elapsed_ms": 2803
       },
       {
         "id": "42627e4b1a2d2ab45637f8a8e83c0eca",
@@ -2123,11 +2123,11 @@
             "calibration_id": "temperature-v1:2959f9ace4fd539902704d04bb7e07f8de675ed62be4201ff5516bf827d91f3a"
           }
         ],
-        "history_id": "adf21691bd3f9d83",
+        "history_id": "fa94f37de07bd22b",
         "top1": true,
         "top3": true,
         "technical_pass": true,
-        "elapsed_ms": 2899
+        "elapsed_ms": 2847
       },
       {
         "id": "2f7fa75736e0b1c48285b75561fd491f",
@@ -2180,11 +2180,11 @@
             "calibration_id": "temperature-v1:2959f9ace4fd539902704d04bb7e07f8de675ed62be4201ff5516bf827d91f3a"
           }
         ],
-        "history_id": "60f160f34766b9ba",
+        "history_id": "4d9865ed1b270abc",
         "top1": false,
         "top3": false,
         "technical_pass": true,
-        "elapsed_ms": 2882
+        "elapsed_ms": 2975
       },
       {
         "id": "09ed8fc1f82c769b39cd57bce6bbf4cf",
@@ -2237,11 +2237,11 @@
             "calibration_id": "temperature-v1:2959f9ace4fd539902704d04bb7e07f8de675ed62be4201ff5516bf827d91f3a"
           }
         ],
-        "history_id": "bf80c12ad6f7d739",
+        "history_id": "bcffd417bb2dd6f6",
         "top1": false,
         "top3": true,
         "technical_pass": true,
-        "elapsed_ms": 3001
+        "elapsed_ms": 3004
       },
       {
         "id": "15649e9a09e4737fcbd8e59259b05972",
@@ -2294,11 +2294,11 @@
             "calibration_id": "temperature-v1:2959f9ace4fd539902704d04bb7e07f8de675ed62be4201ff5516bf827d91f3a"
           }
         ],
-        "history_id": "a3d4ea80aea60e41",
+        "history_id": "8090134195630d85",
         "top1": true,
         "top3": true,
         "technical_pass": true,
-        "elapsed_ms": 3043
+        "elapsed_ms": 2833
       },
       {
         "id": "caaf49f401f55631b881adf1c82b5369",
@@ -2351,11 +2351,11 @@
             "calibration_id": "temperature-v1:2959f9ace4fd539902704d04bb7e07f8de675ed62be4201ff5516bf827d91f3a"
           }
         ],
-        "history_id": "5916999ffebd9921",
+        "history_id": "b766d7027fa86b41",
         "top1": false,
         "top3": false,
         "technical_pass": true,
-        "elapsed_ms": 2925
+        "elapsed_ms": 2744
       },
       {
         "id": "29e995d7e45f2cb248a0f7f703a0853a",
@@ -2408,11 +2408,11 @@
             "calibration_id": "temperature-v1:2959f9ace4fd539902704d04bb7e07f8de675ed62be4201ff5516bf827d91f3a"
           }
         ],
-        "history_id": "55b29fbb747087b9",
+        "history_id": "908cb175765a67d1",
         "top1": true,
         "top3": true,
         "technical_pass": true,
-        "elapsed_ms": 2969
+        "elapsed_ms": 2816
       },
       {
         "id": "6952e544e2dcd6d4e640806226210cdc",
@@ -2465,11 +2465,11 @@
             "calibration_id": "temperature-v1:2959f9ace4fd539902704d04bb7e07f8de675ed62be4201ff5516bf827d91f3a"
           }
         ],
-        "history_id": "74b3d7b0e5cfa0a1",
+        "history_id": "bbb7dd38972d0bad",
         "top1": false,
         "top3": true,
         "technical_pass": true,
-        "elapsed_ms": 3138
+        "elapsed_ms": 2783
       },
       {
         "id": "b0d9367abcfecf7456ec2feb6b1d2da8",
@@ -2522,11 +2522,11 @@
             "calibration_id": "temperature-v1:2959f9ace4fd539902704d04bb7e07f8de675ed62be4201ff5516bf827d91f3a"
           }
         ],
-        "history_id": "b0c3a20125963d4d",
+        "history_id": "661285e8d997fdf8",
         "top1": false,
         "top3": true,
         "technical_pass": true,
-        "elapsed_ms": 2947
+        "elapsed_ms": 2794
       },
       {
         "id": "25ffda727edd467d82ee93553782dd67",
@@ -2579,11 +2579,11 @@
             "calibration_id": "temperature-v1:2959f9ace4fd539902704d04bb7e07f8de675ed62be4201ff5516bf827d91f3a"
           }
         ],
-        "history_id": "35f2b81255d13726",
+        "history_id": "fc97ab161ba96aaf",
         "top1": false,
         "top3": true,
         "technical_pass": true,
-        "elapsed_ms": 3033
+        "elapsed_ms": 2771
       },
       {
         "id": "b10cfb16ad8757692c99d1bb8648eeae",
@@ -2636,11 +2636,11 @@
             "calibration_id": "temperature-v1:2959f9ace4fd539902704d04bb7e07f8de675ed62be4201ff5516bf827d91f3a"
           }
         ],
-        "history_id": "488f796f33f9827d",
+        "history_id": "775d66789071c1aa",
         "top1": true,
         "top3": true,
         "technical_pass": true,
-        "elapsed_ms": 2952
+        "elapsed_ms": 2760
       },
       {
         "id": "e259b38d5d187f358e95f483a75bce6b",
@@ -2693,11 +2693,11 @@
             "calibration_id": "temperature-v1:2959f9ace4fd539902704d04bb7e07f8de675ed62be4201ff5516bf827d91f3a"
           }
         ],
-        "history_id": "f5dab4d886b3dc2c",
+        "history_id": "fa31f7abddc6fda0",
         "top1": false,
         "top3": true,
         "technical_pass": true,
-        "elapsed_ms": 2937
+        "elapsed_ms": 2756
       },
       {
         "id": "f44c769668a25ba344ffcab621c559e2",
@@ -2750,11 +2750,11 @@
             "calibration_id": "temperature-v1:2959f9ace4fd539902704d04bb7e07f8de675ed62be4201ff5516bf827d91f3a"
           }
         ],
-        "history_id": "5fe57e9d4b2db2cf",
+        "history_id": "a00f0fdb14a81514",
         "top1": true,
         "top3": true,
         "technical_pass": true,
-        "elapsed_ms": 3012
+        "elapsed_ms": 2791
       },
       {
         "id": "1dbb1cbc8cdd7b79d95a31e5d684dbcd",
@@ -2807,11 +2807,11 @@
             "calibration_id": "temperature-v1:2959f9ace4fd539902704d04bb7e07f8de675ed62be4201ff5516bf827d91f3a"
           }
         ],
-        "history_id": "f7725621174565f6",
+        "history_id": "bc7305d8530df75e",
         "top1": false,
         "top3": true,
         "technical_pass": true,
-        "elapsed_ms": 2863
+        "elapsed_ms": 2704
       },
       {
         "id": "888a9fca83d75341aeb912f6ee049b03",
@@ -2864,11 +2864,11 @@
             "calibration_id": "temperature-v1:2959f9ace4fd539902704d04bb7e07f8de675ed62be4201ff5516bf827d91f3a"
           }
         ],
-        "history_id": "10353e28e2684229",
+        "history_id": "8b3ff84727cdb7c6",
         "top1": true,
         "top3": true,
         "technical_pass": true,
-        "elapsed_ms": 2989
+        "elapsed_ms": 2871
       },
       {
         "id": "11aa72bef52f6e7a55ed7026b2495a33",
@@ -2921,11 +2921,11 @@
             "calibration_id": "temperature-v1:2959f9ace4fd539902704d04bb7e07f8de675ed62be4201ff5516bf827d91f3a"
           }
         ],
-        "history_id": "c9d1f63eba404b5f",
+        "history_id": "df7e505a8880cc0f",
         "top1": true,
         "top3": true,
         "technical_pass": true,
-        "elapsed_ms": 2977
+        "elapsed_ms": 2715
       },
       {
         "id": "9655f96f01536b03423e42bab497054d",
@@ -2978,11 +2978,11 @@
             "calibration_id": "temperature-v1:2959f9ace4fd539902704d04bb7e07f8de675ed62be4201ff5516bf827d91f3a"
           }
         ],
-        "history_id": "6b713c9fcfbd303f",
+        "history_id": "02e97551089ac80a",
         "top1": false,
         "top3": false,
         "technical_pass": true,
-        "elapsed_ms": 2892
+        "elapsed_ms": 2743
       },
       {
         "id": "65f6f0e4af6b3195b429974a9a73c411",
@@ -3035,11 +3035,11 @@
             "calibration_id": "temperature-v1:2959f9ace4fd539902704d04bb7e07f8de675ed62be4201ff5516bf827d91f3a"
           }
         ],
-        "history_id": "310a286ec32903c8",
+        "history_id": "77cfe42f84e18f2d",
         "top1": true,
         "top3": true,
         "technical_pass": true,
-        "elapsed_ms": 3001
+        "elapsed_ms": 2753
       },
       {
         "id": "8ba18688946a8df8e0944f62d3cdb6b5",
@@ -3092,11 +3092,11 @@
             "calibration_id": "temperature-v1:2959f9ace4fd539902704d04bb7e07f8de675ed62be4201ff5516bf827d91f3a"
           }
         ],
-        "history_id": "6aa3b4d979edf2d2",
+        "history_id": "1e89d84462003a35",
         "top1": true,
         "top3": true,
         "technical_pass": true,
-        "elapsed_ms": 2893
+        "elapsed_ms": 2811
       },
       {
         "id": "8cb7a2c7b66c717a4872fd4dce6867b4",
@@ -3149,11 +3149,11 @@
             "calibration_id": "temperature-v1:2959f9ace4fd539902704d04bb7e07f8de675ed62be4201ff5516bf827d91f3a"
           }
         ],
-        "history_id": "4cd182abf952bfbc",
+        "history_id": "33a434be26770bb7",
         "top1": true,
         "top3": true,
         "technical_pass": true,
-        "elapsed_ms": 2864
+        "elapsed_ms": 2782
       },
       {
         "id": "c9479a8a4fab78ef2395c63f1ebdbb10",
@@ -3206,11 +3206,11 @@
             "calibration_id": "temperature-v1:2959f9ace4fd539902704d04bb7e07f8de675ed62be4201ff5516bf827d91f3a"
           }
         ],
-        "history_id": "11f87a249823edca",
+        "history_id": "819dd4ae10fcf6fd",
         "top1": true,
         "top3": true,
         "technical_pass": true,
-        "elapsed_ms": 2917
+        "elapsed_ms": 2741
       },
       {
         "id": "a6ae704aaadde6ede7ebeedbeafa09d1",
@@ -3263,11 +3263,11 @@
             "calibration_id": "temperature-v1:2959f9ace4fd539902704d04bb7e07f8de675ed62be4201ff5516bf827d91f3a"
           }
         ],
-        "history_id": "6209602d90d02a41",
+        "history_id": "400f8bc440505b23",
         "top1": false,
         "top3": false,
         "technical_pass": true,
-        "elapsed_ms": 3008
+        "elapsed_ms": 2770
       },
       {
         "id": "a6aa9d9fd97d4cf1cfe50e118b71aae3",
@@ -3320,11 +3320,11 @@
             "calibration_id": "temperature-v1:2959f9ace4fd539902704d04bb7e07f8de675ed62be4201ff5516bf827d91f3a"
           }
         ],
-        "history_id": "2734b2d57c7bf93a",
+        "history_id": "790db37bfbd4ebd9",
         "top1": true,
         "top3": true,
         "technical_pass": true,
-        "elapsed_ms": 2925
+        "elapsed_ms": 2713
       },
       {
         "id": "bbcbe688c1e202149469f3984d14dced",
@@ -3377,11 +3377,11 @@
             "calibration_id": "temperature-v1:2959f9ace4fd539902704d04bb7e07f8de675ed62be4201ff5516bf827d91f3a"
           }
         ],
-        "history_id": "66405fa411ad82ef",
+        "history_id": "f2328b8fb4c00e03",
         "top1": false,
         "top3": true,
         "technical_pass": true,
-        "elapsed_ms": 2868
+        "elapsed_ms": 2732
       },
       {
         "id": "74f4981af5b31c37bc3b1c2068efa020",
@@ -3434,11 +3434,11 @@
             "calibration_id": "temperature-v1:2959f9ace4fd539902704d04bb7e07f8de675ed62be4201ff5516bf827d91f3a"
           }
         ],
-        "history_id": "134c9631abf3ffad",
+        "history_id": "d4cde4937e7b6ccb",
         "top1": true,
         "top3": true,
         "technical_pass": true,
-        "elapsed_ms": 3041
+        "elapsed_ms": 2783
       },
       {
         "id": "1705ce1e039bdaf1a7456260b883195c",
@@ -3491,11 +3491,11 @@
             "calibration_id": "temperature-v1:2959f9ace4fd539902704d04bb7e07f8de675ed62be4201ff5516bf827d91f3a"
           }
         ],
-        "history_id": "a976c23829511947",
+        "history_id": "cd37908f9e3cb57b",
         "top1": true,
         "top3": true,
         "technical_pass": true,
-        "elapsed_ms": 2959
+        "elapsed_ms": 2796
       },
       {
         "id": "fe1e60190d2baeaff9e9259dc3047146",
@@ -3548,11 +3548,11 @@
             "calibration_id": "temperature-v1:2959f9ace4fd539902704d04bb7e07f8de675ed62be4201ff5516bf827d91f3a"
           }
         ],
-        "history_id": "0a675c1288c969d8",
+        "history_id": "f78b380ad8c8d06a",
         "top1": false,
         "top3": true,
         "technical_pass": true,
-        "elapsed_ms": 2935
+        "elapsed_ms": 2863
       },
       {
         "id": "4d35ec472e06db780fdc658ad5396155",
@@ -3605,11 +3605,11 @@
             "calibration_id": "temperature-v1:2959f9ace4fd539902704d04bb7e07f8de675ed62be4201ff5516bf827d91f3a"
           }
         ],
-        "history_id": "7238c946d9735798",
+        "history_id": "cbc7623997e5da9e",
         "top1": true,
         "top3": true,
         "technical_pass": true,
-        "elapsed_ms": 3060
+        "elapsed_ms": 2728
       },
       {
         "id": "dfc329d3a21983e830f064bf551fbef6",
@@ -3662,11 +3662,11 @@
             "calibration_id": "temperature-v1:2959f9ace4fd539902704d04bb7e07f8de675ed62be4201ff5516bf827d91f3a"
           }
         ],
-        "history_id": "f9a8a5e90d3c0bde",
+        "history_id": "6d5b5be68e7a50aa",
         "top1": true,
         "top3": true,
         "technical_pass": true,
-        "elapsed_ms": 2989
+        "elapsed_ms": 2799
       },
       {
         "id": "1fe8cd2745ed7e25c4addfaeb80808f8",
@@ -3719,11 +3719,11 @@
             "calibration_id": "temperature-v1:2959f9ace4fd539902704d04bb7e07f8de675ed62be4201ff5516bf827d91f3a"
           }
         ],
-        "history_id": "46f3e41ac0c2437d",
+        "history_id": "c86a31ffd3b8be0c",
         "top1": true,
         "top3": true,
         "technical_pass": true,
-        "elapsed_ms": 3028
+        "elapsed_ms": 2766
       },
       {
         "id": "ef2c95f1c709408fbec5ad23d144f85f",
@@ -3776,11 +3776,11 @@
             "calibration_id": "temperature-v1:2959f9ace4fd539902704d04bb7e07f8de675ed62be4201ff5516bf827d91f3a"
           }
         ],
-        "history_id": "23a3026af9bb25e3",
+        "history_id": "da0c7ea34de49a83",
         "top1": true,
         "top3": true,
         "technical_pass": true,
-        "elapsed_ms": 2977
+        "elapsed_ms": 2724
       },
       {
         "id": "b4758139a9e619965140b35aee5e2137",
@@ -3833,11 +3833,11 @@
             "calibration_id": "temperature-v1:2959f9ace4fd539902704d04bb7e07f8de675ed62be4201ff5516bf827d91f3a"
           }
         ],
-        "history_id": "6d56d838b3d4a58e",
+        "history_id": "c374e4c3a821082f",
         "top1": true,
         "top3": true,
         "technical_pass": true,
-        "elapsed_ms": 3014
+        "elapsed_ms": 2754
       },
       {
         "id": "ca4b8f43fa6c9df6283e69d2cafbee52",
@@ -3890,11 +3890,11 @@
             "calibration_id": "temperature-v1:2959f9ace4fd539902704d04bb7e07f8de675ed62be4201ff5516bf827d91f3a"
           }
         ],
-        "history_id": "1de3aad897db423f",
+        "history_id": "e74e5241b37640f5",
         "top1": true,
         "top3": true,
         "technical_pass": true,
-        "elapsed_ms": 3008
+        "elapsed_ms": 2765
       },
       {
         "id": "ca07cc34383c92a30c537bb6bc4f9ec3",
@@ -3947,11 +3947,11 @@
             "calibration_id": "temperature-v1:2959f9ace4fd539902704d04bb7e07f8de675ed62be4201ff5516bf827d91f3a"
           }
         ],
-        "history_id": "372f092fbc50e66b",
+        "history_id": "db878a09177a2e3b",
         "top1": true,
         "top3": true,
         "technical_pass": true,
-        "elapsed_ms": 2897
+        "elapsed_ms": 2646
       }
     ],
     "dinov2": [
@@ -4006,11 +4006,11 @@
             "calibration_id": "temperature-v1:2959f9ace4fd539902704d04bb7e07f8de675ed62be4201ff5516bf827d91f3a"
           }
         ],
-        "history_id": "544485e40084746e",
+        "history_id": "d8451ae5e4f4300c",
         "top1": false,
         "top3": false,
         "technical_pass": true,
-        "elapsed_ms": 4614
+        "elapsed_ms": 6518
       },
       {
         "id": "0e44c817e5764e1267bd45dfa2b4cab8",
@@ -4063,11 +4063,11 @@
             "calibration_id": "temperature-v1:2959f9ace4fd539902704d04bb7e07f8de675ed62be4201ff5516bf827d91f3a"
           }
         ],
-        "history_id": "600c6307dffb53f3",
+        "history_id": "3c399976509a4996",
         "top1": false,
         "top3": false,
         "technical_pass": true,
-        "elapsed_ms": 1510
+        "elapsed_ms": 1234
       },
       {
         "id": "c8f32d4d12308c5c1693a774ec842af6",
@@ -4120,11 +4120,11 @@
             "calibration_id": "temperature-v1:2959f9ace4fd539902704d04bb7e07f8de675ed62be4201ff5516bf827d91f3a"
           }
         ],
-        "history_id": "4bf4ef3c23d455b7",
+        "history_id": "f214cf6e18defd37",
         "top1": true,
         "top3": true,
         "technical_pass": true,
-        "elapsed_ms": 1493
+        "elapsed_ms": 1291
       },
       {
         "id": "62e3a9cd6c611de4717cc8b7abb0c75d",
@@ -4177,11 +4177,11 @@
             "calibration_id": "temperature-v1:2959f9ace4fd539902704d04bb7e07f8de675ed62be4201ff5516bf827d91f3a"
           }
         ],
-        "history_id": "6e0bed0b43477017",
+        "history_id": "1af09ba21151065e",
         "top1": false,
         "top3": false,
         "technical_pass": true,
-        "elapsed_ms": 1421
+        "elapsed_ms": 1431
       },
       {
         "id": "547fffae057911b36514586264fd7411",
@@ -4234,11 +4234,11 @@
             "calibration_id": "temperature-v1:2959f9ace4fd539902704d04bb7e07f8de675ed62be4201ff5516bf827d91f3a"
           }
         ],
-        "history_id": "ed7525f042d859e9",
+        "history_id": "e0d4cffc77c0dc2f",
         "top1": true,
         "top3": true,
         "technical_pass": true,
-        "elapsed_ms": 1471
+        "elapsed_ms": 1390
       },
       {
         "id": "ec81019b1858f02c1e0ba694782eed1d",
@@ -4291,11 +4291,11 @@
             "calibration_id": "temperature-v1:2959f9ace4fd539902704d04bb7e07f8de675ed62be4201ff5516bf827d91f3a"
           }
         ],
-        "history_id": "9db3034f3a34143e",
+        "history_id": "7e63a552f9895047",
         "top1": false,
         "top3": true,
         "technical_pass": true,
-        "elapsed_ms": 1456
+        "elapsed_ms": 1307
       },
       {
         "id": "98fcc3163c248c7af0c491a8b7754941",
@@ -4348,11 +4348,11 @@
             "calibration_id": "temperature-v1:2959f9ace4fd539902704d04bb7e07f8de675ed62be4201ff5516bf827d91f3a"
           }
         ],
-        "history_id": "02a6ba22aa4a8604",
+        "history_id": "ce43e328a1a5d88f",
         "top1": false,
         "top3": false,
         "technical_pass": true,
-        "elapsed_ms": 1410
+        "elapsed_ms": 1430
       },
       {
         "id": "f65501dd011099fbbbf5dc453520999d",
@@ -4405,11 +4405,11 @@
             "calibration_id": "temperature-v1:2959f9ace4fd539902704d04bb7e07f8de675ed62be4201ff5516bf827d91f3a"
           }
         ],
-        "history_id": "8ec64739d65506ef",
+        "history_id": "dfd2b552c9653221",
         "top1": false,
         "top3": true,
         "technical_pass": true,
-        "elapsed_ms": 1498
+        "elapsed_ms": 1393
       },
       {
         "id": "406ca484dd123782562f9fcafc55d286",
@@ -4462,11 +4462,11 @@
             "calibration_id": "temperature-v1:2959f9ace4fd539902704d04bb7e07f8de675ed62be4201ff5516bf827d91f3a"
           }
         ],
-        "history_id": "aecfe33cca76b67d",
+        "history_id": "721c91eca441f4d8",
         "top1": false,
         "top3": true,
         "technical_pass": true,
-        "elapsed_ms": 1451
+        "elapsed_ms": 1348
       },
       {
         "id": "fabcc538573824da4df8f2fb78ef1aff",
@@ -4519,11 +4519,11 @@
             "calibration_id": "temperature-v1:2959f9ace4fd539902704d04bb7e07f8de675ed62be4201ff5516bf827d91f3a"
           }
         ],
-        "history_id": "6d7a45172e5d9622",
+        "history_id": "c9d1a1e5a219cbf7",
         "top1": false,
         "top3": false,
         "technical_pass": true,
-        "elapsed_ms": 1543
+        "elapsed_ms": 1306
       },
       {
         "id": "0f6e37c5fc30d82e37be3ab8b18e6e3c",
@@ -4576,11 +4576,11 @@
             "calibration_id": "temperature-v1:2959f9ace4fd539902704d04bb7e07f8de675ed62be4201ff5516bf827d91f3a"
           }
         ],
-        "history_id": "83a1e76276514327",
+        "history_id": "ae4d3c05f3bee19a",
         "top1": true,
         "top3": true,
         "technical_pass": true,
-        "elapsed_ms": 1447
+        "elapsed_ms": 1334
       },
       {
         "id": "529f55c9c8d92b1ca967ecaea32e89a0",
@@ -4633,11 +4633,11 @@
             "calibration_id": "temperature-v1:2959f9ace4fd539902704d04bb7e07f8de675ed62be4201ff5516bf827d91f3a"
           }
         ],
-        "history_id": "bd729775550ae148",
+        "history_id": "0fea016559bca52d",
         "top1": true,
         "top3": true,
         "technical_pass": true,
-        "elapsed_ms": 1413
+        "elapsed_ms": 1330
       },
       {
         "id": "59e73615eb6ae6d4b1106b996266a008",
@@ -4690,11 +4690,11 @@
             "calibration_id": "temperature-v1:2959f9ace4fd539902704d04bb7e07f8de675ed62be4201ff5516bf827d91f3a"
           }
         ],
-        "history_id": "8d3ee6ebbf264e2a",
+        "history_id": "209b04ba907be4de",
         "top1": false,
         "top3": true,
         "technical_pass": true,
-        "elapsed_ms": 1481
+        "elapsed_ms": 1351
       },
       {
         "id": "74ef5c233f2e42566c51ecd669a4ae43",
@@ -4747,11 +4747,11 @@
             "calibration_id": "temperature-v1:2959f9ace4fd539902704d04bb7e07f8de675ed62be4201ff5516bf827d91f3a"
           }
         ],
-        "history_id": "608c12925f85f39a",
+        "history_id": "b4c33a83f3e676e8",
         "top1": true,
         "top3": true,
         "technical_pass": true,
-        "elapsed_ms": 1432
+        "elapsed_ms": 1378
       },
       {
         "id": "7add91bba51e699f762500f896daa0cc",
@@ -4804,11 +4804,11 @@
             "calibration_id": "temperature-v1:2959f9ace4fd539902704d04bb7e07f8de675ed62be4201ff5516bf827d91f3a"
           }
         ],
-        "history_id": "99da22ca8279518f",
+        "history_id": "8a7363852fe82e86",
         "top1": true,
         "top3": true,
         "technical_pass": true,
-        "elapsed_ms": 1408
+        "elapsed_ms": 1377
       },
       {
         "id": "c2bf256189074e6851f239125fa7616e",
@@ -4861,11 +4861,11 @@
             "calibration_id": "temperature-v1:2959f9ace4fd539902704d04bb7e07f8de675ed62be4201ff5516bf827d91f3a"
           }
         ],
-        "history_id": "6259ab32f5dd3294",
+        "history_id": "feb2ca865aa064ef",
         "top1": true,
         "top3": true,
         "technical_pass": true,
-        "elapsed_ms": 1372
+        "elapsed_ms": 1334
       },
       {
         "id": "93de835541076e4dc393bc1741188d0d",
@@ -4918,11 +4918,11 @@
             "calibration_id": "temperature-v1:2959f9ace4fd539902704d04bb7e07f8de675ed62be4201ff5516bf827d91f3a"
           }
         ],
-        "history_id": "6c3b4910d23df61f",
+        "history_id": "8d7dee34e267fdac",
         "top1": true,
         "top3": true,
         "technical_pass": true,
-        "elapsed_ms": 1366
+        "elapsed_ms": 1325
       },
       {
         "id": "572c0ae4c8946dfa454876a260cf5869",
@@ -4975,11 +4975,11 @@
             "calibration_id": "temperature-v1:2959f9ace4fd539902704d04bb7e07f8de675ed62be4201ff5516bf827d91f3a"
           }
         ],
-        "history_id": "329dbf27c4f55b10",
+        "history_id": "52fc3b0efad829ad",
         "top1": false,
         "top3": true,
         "technical_pass": true,
-        "elapsed_ms": 1369
+        "elapsed_ms": 1458
       },
       {
         "id": "b8d4196056d5aab5cc0852556b99281b",
@@ -5032,11 +5032,11 @@
             "calibration_id": "temperature-v1:2959f9ace4fd539902704d04bb7e07f8de675ed62be4201ff5516bf827d91f3a"
           }
         ],
-        "history_id": "9be32763dc8d21c5",
+        "history_id": "ff8a4ba474cc6ab3",
         "top1": true,
         "top3": true,
         "technical_pass": true,
-        "elapsed_ms": 1358
+        "elapsed_ms": 1319
       },
       {
         "id": "f2bb54944032718eee7dc3b4abd07c49",
@@ -5089,11 +5089,11 @@
             "calibration_id": "temperature-v1:2959f9ace4fd539902704d04bb7e07f8de675ed62be4201ff5516bf827d91f3a"
           }
         ],
-        "history_id": "03a85b3683bb743d",
+        "history_id": "31de4ef6cf2ca783",
         "top1": true,
         "top3": true,
         "technical_pass": true,
-        "elapsed_ms": 1335
+        "elapsed_ms": 1415
       },
       {
         "id": "2546b9b11d4cad5f88084a3024fa2132",
@@ -5146,11 +5146,11 @@
             "calibration_id": "temperature-v1:2959f9ace4fd539902704d04bb7e07f8de675ed62be4201ff5516bf827d91f3a"
           }
         ],
-        "history_id": "242889c001632b47",
+        "history_id": "a716b654753c22da",
         "top1": true,
         "top3": true,
         "technical_pass": true,
-        "elapsed_ms": 1359
+        "elapsed_ms": 1329
       },
       {
         "id": "0f33fda4d4e4ba2f6ccbe1fb81bc18c9",
@@ -5203,11 +5203,11 @@
             "calibration_id": "temperature-v1:2959f9ace4fd539902704d04bb7e07f8de675ed62be4201ff5516bf827d91f3a"
           }
         ],
-        "history_id": "a599af7d1eadba98",
+        "history_id": "fe00af54bcb99ecb",
         "top1": true,
         "top3": true,
         "technical_pass": true,
-        "elapsed_ms": 1407
+        "elapsed_ms": 1387
       },
       {
         "id": "a1ee544ee30a114d67a3420949fabc08",
@@ -5260,11 +5260,11 @@
             "calibration_id": "temperature-v1:2959f9ace4fd539902704d04bb7e07f8de675ed62be4201ff5516bf827d91f3a"
           }
         ],
-        "history_id": "3b520eb445ba8cbd",
+        "history_id": "ac6a5cdc524dc997",
         "top1": true,
         "top3": true,
         "technical_pass": true,
-        "elapsed_ms": 1361
+        "elapsed_ms": 1366
       },
       {
         "id": "d5a9a4d85bf5bef32dbbd09c1644e8fe",
@@ -5317,11 +5317,11 @@
             "calibration_id": "temperature-v1:2959f9ace4fd539902704d04bb7e07f8de675ed62be4201ff5516bf827d91f3a"
           }
         ],
-        "history_id": "cdc71af3ab2f4eb6",
+        "history_id": "264765302214ef18",
         "top1": false,
         "top3": false,
         "technical_pass": true,
-        "elapsed_ms": 1357
+        "elapsed_ms": 1332
       },
       {
         "id": "8965ef2646315d7337cf9324cfcd2a50",
@@ -5374,11 +5374,11 @@
             "calibration_id": "temperature-v1:2959f9ace4fd539902704d04bb7e07f8de675ed62be4201ff5516bf827d91f3a"
           }
         ],
-        "history_id": "6d3abe19d7e61bc4",
+        "history_id": "1ce78b11ebe3a5db",
         "top1": true,
         "top3": true,
         "technical_pass": true,
-        "elapsed_ms": 1943
+        "elapsed_ms": 1313
       },
       {
         "id": "233e1b453f2331fa86cf553298a9f8df",
@@ -5431,11 +5431,11 @@
             "calibration_id": "temperature-v1:2959f9ace4fd539902704d04bb7e07f8de675ed62be4201ff5516bf827d91f3a"
           }
         ],
-        "history_id": "49b7d236f4008740",
+        "history_id": "473e5e3269a50589",
         "top1": true,
         "top3": true,
         "technical_pass": true,
-        "elapsed_ms": 1926
+        "elapsed_ms": 1345
       },
       {
         "id": "162c78be8cad947a1d7cf995b8a3691e",
@@ -5488,11 +5488,11 @@
             "calibration_id": "temperature-v1:2959f9ace4fd539902704d04bb7e07f8de675ed62be4201ff5516bf827d91f3a"
           }
         ],
-        "history_id": "3e43e9a4aed4b4a3",
+        "history_id": "cbf7fadd5e7cf1b1",
         "top1": false,
         "top3": true,
         "technical_pass": true,
-        "elapsed_ms": 1765
+        "elapsed_ms": 1417
       },
       {
         "id": "8449aa446b0f2e5daa8e9a08f71df620",
@@ -5545,11 +5545,11 @@
             "calibration_id": "temperature-v1:2959f9ace4fd539902704d04bb7e07f8de675ed62be4201ff5516bf827d91f3a"
           }
         ],
-        "history_id": "6782a0b3c798f36a",
+        "history_id": "b82e795b3b2537aa",
         "top1": true,
         "top3": true,
         "technical_pass": true,
-        "elapsed_ms": 1716
+        "elapsed_ms": 1328
       },
       {
         "id": "bf7362c0e7c0c7433ac0a01509704f78",
@@ -5602,11 +5602,11 @@
             "calibration_id": "temperature-v1:2959f9ace4fd539902704d04bb7e07f8de675ed62be4201ff5516bf827d91f3a"
           }
         ],
-        "history_id": "b9a6781b9d236898",
+        "history_id": "e102a939e0766128",
         "top1": false,
         "top3": false,
         "technical_pass": true,
-        "elapsed_ms": 1737
+        "elapsed_ms": 1446
       },
       {
         "id": "9d8367816a40c007b1781dd4919964ab",
@@ -5659,11 +5659,11 @@
             "calibration_id": "temperature-v1:2959f9ace4fd539902704d04bb7e07f8de675ed62be4201ff5516bf827d91f3a"
           }
         ],
-        "history_id": "a6ed448bb57fbd0d",
+        "history_id": "50d2394b73260a92",
         "top1": true,
         "top3": true,
         "technical_pass": true,
-        "elapsed_ms": 1755
+        "elapsed_ms": 1501
       },
       {
         "id": "fa3cb51ebbe82d590a9ed9ed73b80f21",
@@ -5716,11 +5716,11 @@
             "calibration_id": "temperature-v1:2959f9ace4fd539902704d04bb7e07f8de675ed62be4201ff5516bf827d91f3a"
           }
         ],
-        "history_id": "d884a7d975a4f746",
+        "history_id": "a030f106292e3be3",
         "top1": true,
         "top3": true,
         "technical_pass": true,
-        "elapsed_ms": 1765
+        "elapsed_ms": 1350
       },
       {
         "id": "2a31dca2d1c39a07902ac40b9b53526c",
@@ -5773,11 +5773,11 @@
             "calibration_id": "temperature-v1:2959f9ace4fd539902704d04bb7e07f8de675ed62be4201ff5516bf827d91f3a"
           }
         ],
-        "history_id": "646dd3e4843742a3",
+        "history_id": "6a4e3e1038bbfec3",
         "top1": true,
         "top3": true,
         "technical_pass": true,
-        "elapsed_ms": 1684
+        "elapsed_ms": 1338
       },
       {
         "id": "f6c665b439b5af27c1abc1003bd45699",
@@ -5830,11 +5830,11 @@
             "calibration_id": "temperature-v1:2959f9ace4fd539902704d04bb7e07f8de675ed62be4201ff5516bf827d91f3a"
           }
         ],
-        "history_id": "82daa216f56debc8",
+        "history_id": "5d47274c787d4cd1",
         "top1": true,
         "top3": true,
         "technical_pass": true,
-        "elapsed_ms": 1792
+        "elapsed_ms": 1486
       },
       {
         "id": "b5d59e8b4364d37314d05f27746c136e",
@@ -5887,11 +5887,11 @@
             "calibration_id": "temperature-v1:2959f9ace4fd539902704d04bb7e07f8de675ed62be4201ff5516bf827d91f3a"
           }
         ],
-        "history_id": "da729dc4fecf447e",
+        "history_id": "b0cf1a4a42c744ca",
         "top1": true,
         "top3": true,
         "technical_pass": true,
-        "elapsed_ms": 1666
+        "elapsed_ms": 1340
       },
       {
         "id": "1afa40788f2f79cc5ffaceca10179414",
@@ -5944,11 +5944,11 @@
             "calibration_id": "temperature-v1:2959f9ace4fd539902704d04bb7e07f8de675ed62be4201ff5516bf827d91f3a"
           }
         ],
-        "history_id": "29abeb78e2309ffd",
+        "history_id": "708c384e14d4224f",
         "top1": true,
         "top3": true,
         "technical_pass": true,
-        "elapsed_ms": 1742
+        "elapsed_ms": 1427
       },
       {
         "id": "42627e4b1a2d2ab45637f8a8e83c0eca",
@@ -6001,11 +6001,11 @@
             "calibration_id": "temperature-v1:2959f9ace4fd539902704d04bb7e07f8de675ed62be4201ff5516bf827d91f3a"
           }
         ],
-        "history_id": "6364b2b3010de7a3",
+        "history_id": "380bfa30c956d4d1",
         "top1": false,
         "top3": false,
         "technical_pass": true,
-        "elapsed_ms": 1678
+        "elapsed_ms": 1267
       },
       {
         "id": "2f7fa75736e0b1c48285b75561fd491f",
@@ -6058,11 +6058,11 @@
             "calibration_id": "temperature-v1:2959f9ace4fd539902704d04bb7e07f8de675ed62be4201ff5516bf827d91f3a"
           }
         ],
-        "history_id": "31a005b561afa3de",
+        "history_id": "b68a80a025a72009",
         "top1": false,
         "top3": false,
         "technical_pass": true,
-        "elapsed_ms": 1778
+        "elapsed_ms": 1483
       },
       {
         "id": "09ed8fc1f82c769b39cd57bce6bbf4cf",
@@ -6115,11 +6115,11 @@
             "calibration_id": "temperature-v1:2959f9ace4fd539902704d04bb7e07f8de675ed62be4201ff5516bf827d91f3a"
           }
         ],
-        "history_id": "7214428b3f7dc0e3",
+        "history_id": "5221f579dbc3d99a",
         "top1": false,
         "top3": true,
         "technical_pass": true,
-        "elapsed_ms": 1709
+        "elapsed_ms": 1357
       },
       {
         "id": "15649e9a09e4737fcbd8e59259b05972",
@@ -6172,11 +6172,11 @@
             "calibration_id": "temperature-v1:2959f9ace4fd539902704d04bb7e07f8de675ed62be4201ff5516bf827d91f3a"
           }
         ],
-        "history_id": "8a9cc62a8a59867c",
+        "history_id": "3b931e0915e8fafa",
         "top1": false,
         "top3": true,
         "technical_pass": true,
-        "elapsed_ms": 1715
+        "elapsed_ms": 1332
       },
       {
         "id": "caaf49f401f55631b881adf1c82b5369",
@@ -6229,11 +6229,11 @@
             "calibration_id": "temperature-v1:2959f9ace4fd539902704d04bb7e07f8de675ed62be4201ff5516bf827d91f3a"
           }
         ],
-        "history_id": "4a511cab2def9d49",
+        "history_id": "6a7e0c5d3c014c9a",
         "top1": false,
         "top3": true,
         "technical_pass": true,
-        "elapsed_ms": 1663
+        "elapsed_ms": 1301
       },
       {
         "id": "29e995d7e45f2cb248a0f7f703a0853a",
@@ -6286,11 +6286,11 @@
             "calibration_id": "temperature-v1:2959f9ace4fd539902704d04bb7e07f8de675ed62be4201ff5516bf827d91f3a"
           }
         ],
-        "history_id": "52cca2b6d2658ac3",
+        "history_id": "76ac9ea601f6ec1b",
         "top1": true,
         "top3": true,
         "technical_pass": true,
-        "elapsed_ms": 1586
+        "elapsed_ms": 1329
       },
       {
         "id": "6952e544e2dcd6d4e640806226210cdc",
@@ -6343,11 +6343,11 @@
             "calibration_id": "temperature-v1:2959f9ace4fd539902704d04bb7e07f8de675ed62be4201ff5516bf827d91f3a"
           }
         ],
-        "history_id": "5ee9c2b5131cc073",
+        "history_id": "2eb7d86b3181a9e4",
         "top1": true,
         "top3": true,
         "technical_pass": true,
-        "elapsed_ms": 1707
+        "elapsed_ms": 1346
       },
       {
         "id": "b0d9367abcfecf7456ec2feb6b1d2da8",
@@ -6400,11 +6400,11 @@
             "calibration_id": "temperature-v1:2959f9ace4fd539902704d04bb7e07f8de675ed62be4201ff5516bf827d91f3a"
           }
         ],
-        "history_id": "b5a217fe2a4fb61a",
+        "history_id": "b71e7b17819296a4",
         "top1": false,
         "top3": true,
         "technical_pass": true,
-        "elapsed_ms": 1728
+        "elapsed_ms": 1433
       },
       {
         "id": "25ffda727edd467d82ee93553782dd67",
@@ -6457,11 +6457,11 @@
             "calibration_id": "temperature-v1:2959f9ace4fd539902704d04bb7e07f8de675ed62be4201ff5516bf827d91f3a"
           }
         ],
-        "history_id": "f40d701c86751e0a",
+        "history_id": "e180d00d0699c75a",
         "top1": false,
         "top3": true,
         "technical_pass": true,
-        "elapsed_ms": 1651
+        "elapsed_ms": 1233
       },
       {
         "id": "b10cfb16ad8757692c99d1bb8648eeae",
@@ -6514,11 +6514,11 @@
             "calibration_id": "temperature-v1:2959f9ace4fd539902704d04bb7e07f8de675ed62be4201ff5516bf827d91f3a"
           }
         ],
-        "history_id": "cf00888f66628b00",
+        "history_id": "59d6506bc862d95a",
         "top1": false,
         "top3": true,
         "technical_pass": true,
-        "elapsed_ms": 1659
+        "elapsed_ms": 1345
       },
       {
         "id": "e259b38d5d187f358e95f483a75bce6b",
@@ -6571,11 +6571,11 @@
             "calibration_id": "temperature-v1:2959f9ace4fd539902704d04bb7e07f8de675ed62be4201ff5516bf827d91f3a"
           }
         ],
-        "history_id": "db907e0e42eb783b",
+        "history_id": "ccc923650ad06f51",
         "top1": false,
         "top3": true,
         "technical_pass": true,
-        "elapsed_ms": 1746
+        "elapsed_ms": 1414
       },
       {
         "id": "f44c769668a25ba344ffcab621c559e2",
@@ -6628,11 +6628,11 @@
             "calibration_id": "temperature-v1:2959f9ace4fd539902704d04bb7e07f8de675ed62be4201ff5516bf827d91f3a"
           }
         ],
-        "history_id": "3be69526dda211e5",
+        "history_id": "5d3972e2336e580e",
         "top1": true,
         "top3": true,
         "technical_pass": true,
-        "elapsed_ms": 1720
+        "elapsed_ms": 1396
       },
       {
         "id": "1dbb1cbc8cdd7b79d95a31e5d684dbcd",
@@ -6685,11 +6685,11 @@
             "calibration_id": "temperature-v1:2959f9ace4fd539902704d04bb7e07f8de675ed62be4201ff5516bf827d91f3a"
           }
         ],
-        "history_id": "05570b3af9ea8f7b",
+        "history_id": "8ae1ccd4615b8b8e",
         "top1": false,
         "top3": true,
         "technical_pass": true,
-        "elapsed_ms": 1640
+        "elapsed_ms": 1383
       },
       {
         "id": "888a9fca83d75341aeb912f6ee049b03",
@@ -6742,11 +6742,11 @@
             "calibration_id": "temperature-v1:2959f9ace4fd539902704d04bb7e07f8de675ed62be4201ff5516bf827d91f3a"
           }
         ],
-        "history_id": "19bc537dcaedf267",
+        "history_id": "86faa76cb359ee96",
         "top1": true,
         "top3": true,
         "technical_pass": true,
-        "elapsed_ms": 1678
+        "elapsed_ms": 1326
       },
       {
         "id": "11aa72bef52f6e7a55ed7026b2495a33",
@@ -6799,11 +6799,11 @@
             "calibration_id": "temperature-v1:2959f9ace4fd539902704d04bb7e07f8de675ed62be4201ff5516bf827d91f3a"
           }
         ],
-        "history_id": "76ae62f6b4ca1670",
+        "history_id": "ee92c6ad0fc1422e",
         "top1": true,
         "top3": true,
         "technical_pass": true,
-        "elapsed_ms": 1731
+        "elapsed_ms": 1498
       },
       {
         "id": "9655f96f01536b03423e42bab497054d",
@@ -6856,11 +6856,11 @@
             "calibration_id": "temperature-v1:2959f9ace4fd539902704d04bb7e07f8de675ed62be4201ff5516bf827d91f3a"
           }
         ],
-        "history_id": "3c83db8937ad913a",
+        "history_id": "88fab10d07e411f3",
         "top1": false,
         "top3": true,
         "technical_pass": true,
-        "elapsed_ms": 1597
+        "elapsed_ms": 1266
       },
       {
         "id": "65f6f0e4af6b3195b429974a9a73c411",
@@ -6913,11 +6913,11 @@
             "calibration_id": "temperature-v1:2959f9ace4fd539902704d04bb7e07f8de675ed62be4201ff5516bf827d91f3a"
           }
         ],
-        "history_id": "98805462bedffc76",
+        "history_id": "dbd9c75e6f2d03e3",
         "top1": true,
         "top3": true,
         "technical_pass": true,
-        "elapsed_ms": 1697
+        "elapsed_ms": 1389
       },
       {
         "id": "8ba18688946a8df8e0944f62d3cdb6b5",
@@ -6970,11 +6970,11 @@
             "calibration_id": "temperature-v1:2959f9ace4fd539902704d04bb7e07f8de675ed62be4201ff5516bf827d91f3a"
           }
         ],
-        "history_id": "68a9172a20098646",
+        "history_id": "d5663d10bce38171",
         "top1": true,
         "top3": true,
         "technical_pass": true,
-        "elapsed_ms": 1758
+        "elapsed_ms": 1598
       },
       {
         "id": "8cb7a2c7b66c717a4872fd4dce6867b4",
@@ -7027,11 +7027,11 @@
             "calibration_id": "temperature-v1:2959f9ace4fd539902704d04bb7e07f8de675ed62be4201ff5516bf827d91f3a"
           }
         ],
-        "history_id": "d7cb14d80a7d67df",
+        "history_id": "7cfa2b8e3d47fcb4",
         "top1": true,
         "top3": true,
         "technical_pass": true,
-        "elapsed_ms": 1730
+        "elapsed_ms": 1394
       },
       {
         "id": "c9479a8a4fab78ef2395c63f1ebdbb10",
@@ -7084,11 +7084,11 @@
             "calibration_id": "temperature-v1:2959f9ace4fd539902704d04bb7e07f8de675ed62be4201ff5516bf827d91f3a"
           }
         ],
-        "history_id": "b5a2ba15b172d965",
+        "history_id": "76cbee42bc4fb55f",
         "top1": true,
         "top3": true,
         "technical_pass": true,
-        "elapsed_ms": 1802
+        "elapsed_ms": 1438
       },
       {
         "id": "a6ae704aaadde6ede7ebeedbeafa09d1",
@@ -7141,11 +7141,11 @@
             "calibration_id": "temperature-v1:2959f9ace4fd539902704d04bb7e07f8de675ed62be4201ff5516bf827d91f3a"
           }
         ],
-        "history_id": "55c03618ab910e33",
+        "history_id": "f3e4327f4459ca96",
         "top1": false,
         "top3": false,
         "technical_pass": true,
-        "elapsed_ms": 1728
+        "elapsed_ms": 1446
       },
       {
         "id": "a6aa9d9fd97d4cf1cfe50e118b71aae3",
@@ -7198,11 +7198,11 @@
             "calibration_id": "temperature-v1:2959f9ace4fd539902704d04bb7e07f8de675ed62be4201ff5516bf827d91f3a"
           }
         ],
-        "history_id": "03f19284993f290a",
+        "history_id": "c5f407b902dcf4d4",
         "top1": true,
         "top3": true,
         "technical_pass": true,
-        "elapsed_ms": 1729
+        "elapsed_ms": 1452
       },
       {
         "id": "bbcbe688c1e202149469f3984d14dced",
@@ -7255,11 +7255,11 @@
             "calibration_id": "temperature-v1:2959f9ace4fd539902704d04bb7e07f8de675ed62be4201ff5516bf827d91f3a"
           }
         ],
-        "history_id": "44a2d1adf391afeb",
+        "history_id": "50581a74677b030a",
         "top1": true,
         "top3": true,
         "technical_pass": true,
-        "elapsed_ms": 1696
+        "elapsed_ms": 1425
       },
       {
         "id": "74f4981af5b31c37bc3b1c2068efa020",
@@ -7312,11 +7312,11 @@
             "calibration_id": "temperature-v1:2959f9ace4fd539902704d04bb7e07f8de675ed62be4201ff5516bf827d91f3a"
           }
         ],
-        "history_id": "5b5d1d599da2006a",
+        "history_id": "615dd848ce8180bd",
         "top1": true,
         "top3": true,
         "technical_pass": true,
-        "elapsed_ms": 1696
+        "elapsed_ms": 1363
       },
       {
         "id": "1705ce1e039bdaf1a7456260b883195c",
@@ -7369,11 +7369,11 @@
             "calibration_id": "temperature-v1:2959f9ace4fd539902704d04bb7e07f8de675ed62be4201ff5516bf827d91f3a"
           }
         ],
-        "history_id": "8e26cde5e434d3a7",
+        "history_id": "11620f586adba952",
         "top1": true,
         "top3": true,
         "technical_pass": true,
-        "elapsed_ms": 1772
+        "elapsed_ms": 1363
       },
       {
         "id": "fe1e60190d2baeaff9e9259dc3047146",
@@ -7426,11 +7426,11 @@
             "calibration_id": "temperature-v1:2959f9ace4fd539902704d04bb7e07f8de675ed62be4201ff5516bf827d91f3a"
           }
         ],
-        "history_id": "48f2cc01444a36a6",
+        "history_id": "3b7908c87d4fcccc",
         "top1": true,
         "top3": true,
         "technical_pass": true,
-        "elapsed_ms": 1630
+        "elapsed_ms": 1381
       },
       {
         "id": "4d35ec472e06db780fdc658ad5396155",
@@ -7483,11 +7483,11 @@
             "calibration_id": "temperature-v1:2959f9ace4fd539902704d04bb7e07f8de675ed62be4201ff5516bf827d91f3a"
           }
         ],
-        "history_id": "bce60b0db31c505f",
+        "history_id": "4f76fcbf5a00146e",
         "top1": true,
         "top3": true,
         "technical_pass": true,
-        "elapsed_ms": 1697
+        "elapsed_ms": 1341
       },
       {
         "id": "dfc329d3a21983e830f064bf551fbef6",
@@ -7540,11 +7540,11 @@
             "calibration_id": "temperature-v1:2959f9ace4fd539902704d04bb7e07f8de675ed62be4201ff5516bf827d91f3a"
           }
         ],
-        "history_id": "f26caa1d139f80a0",
+        "history_id": "2472c4ded6857473",
         "top1": false,
         "top3": true,
         "technical_pass": true,
-        "elapsed_ms": 1716
+        "elapsed_ms": 1314
       },
       {
         "id": "1fe8cd2745ed7e25c4addfaeb80808f8",
@@ -7597,11 +7597,11 @@
             "calibration_id": "temperature-v1:2959f9ace4fd539902704d04bb7e07f8de675ed62be4201ff5516bf827d91f3a"
           }
         ],
-        "history_id": "eb669acd5d84081c",
+        "history_id": "2c28f7076667c768",
         "top1": false,
         "top3": false,
         "technical_pass": true,
-        "elapsed_ms": 1775
+        "elapsed_ms": 1532
       },
       {
         "id": "ef2c95f1c709408fbec5ad23d144f85f",
@@ -7654,11 +7654,11 @@
             "calibration_id": "temperature-v1:2959f9ace4fd539902704d04bb7e07f8de675ed62be4201ff5516bf827d91f3a"
           }
         ],
-        "history_id": "3e608569597bff3d",
+        "history_id": "b2a491201a9e71fd",
         "top1": false,
         "top3": false,
         "technical_pass": true,
-        "elapsed_ms": 1683
+        "elapsed_ms": 1349
       },
       {
         "id": "b4758139a9e619965140b35aee5e2137",
@@ -7711,11 +7711,11 @@
             "calibration_id": "temperature-v1:2959f9ace4fd539902704d04bb7e07f8de675ed62be4201ff5516bf827d91f3a"
           }
         ],
-        "history_id": "a125c57f704e91f2",
+        "history_id": "158aa26f08a3d6e8",
         "top1": true,
         "top3": true,
         "technical_pass": true,
-        "elapsed_ms": 1837
+        "elapsed_ms": 1455
       },
       {
         "id": "ca4b8f43fa6c9df6283e69d2cafbee52",
@@ -7768,11 +7768,11 @@
             "calibration_id": "temperature-v1:2959f9ace4fd539902704d04bb7e07f8de675ed62be4201ff5516bf827d91f3a"
           }
         ],
-        "history_id": "065ff4149b86c064",
+        "history_id": "1c249e8b511a9158",
         "top1": false,
         "top3": true,
         "technical_pass": true,
-        "elapsed_ms": 1688
+        "elapsed_ms": 1366
       },
       {
         "id": "ca07cc34383c92a30c537bb6bc4f9ec3",
@@ -7825,11 +7825,11 @@
             "calibration_id": "temperature-v1:2959f9ace4fd539902704d04bb7e07f8de675ed62be4201ff5516bf827d91f3a"
           }
         ],
-        "history_id": "c17aab7a84df198f",
+        "history_id": "a66808d433be4098",
         "top1": true,
         "top3": true,
         "technical_pass": true,
-        "elapsed_ms": 1756
+        "elapsed_ms": 1447
       }
     ]
   },
@@ -7837,6 +7837,6 @@
   "page_errors": [],
   "browser": "155.0.4283.62",
   "reference_limit": 16,
-  "finished_at": "2026-10-18T12:13:11.619Z",
+  "finished_at": "2026-10-21T07:07:28.682Z",
   "pass": true
 }

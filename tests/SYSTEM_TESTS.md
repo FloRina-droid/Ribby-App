@@ -25,9 +25,11 @@ python tests/run_core_tests.py
 python tests/accuracy/verify_seed_release.py
 node tests/test_image_logic.cjs
 node tests/test_image_calibration.cjs
+node tests/test_image_cache.cjs
 node tests/browser_reference_pack.cjs
 node tests/browser_all_species.cjs
 node tests/browser_percentages.cjs
+node tests/browser_image_cache.cjs
 node tests/browser_faults.cjs
 node tests/browser_lifecycle.cjs
 node tests/browser_private_species.cjs
@@ -83,6 +85,14 @@ Testsatz ist keine Garantie für fehlerfreie Artbestimmung bei beliebigen Fotos.
 
 Der Prüfserver enthält ausschließlich Testkonten mit einem festgelegten
 Testpasswort und bindet an localhost. Er gehört nicht in eine Produktivumgebung.
+
+`test_image_cache.cjs` prüft 13 Fälle mit der tatsächlichen Referenzfunktion aus
+der HTML-Datei: alte/geänderte Cache-Einträge, Modell- und Foto-Bindung, private
+Fotos, ungültige Merkmale, veränderte Downloads, Speicherfehler und Abbruch oder
+Nutzerwechsel während asynchroner Arbeit. `browser_image_cache.cjs` prüft acht
+entsprechende Abläufe in der normalen Oberfläche. Beide verwenden deterministische
+Vektoren und messen keine Erkennungsgenauigkeit. Die echte Inferenz bleibt im
+vollständigen Artentest separat geprüft.
 
 `verify_seed_release.py` startet zusätzlich den unveränderten regulären Server in
 einem temporären Ordner mit ausschließlich den drei Seed-Teilen und ihrer

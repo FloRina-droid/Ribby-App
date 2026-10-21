@@ -4,6 +4,7 @@ ribby_server.py -text
 ribby_images.py -text
 image_metric.json -text
 image_calibration.json -text
+image_reference_integrity.json -text
 ribby_image_seed.zip.manifest.json -text
 ribby_image_seed.zip.part* -text
 Dockerfile text eol=lf
