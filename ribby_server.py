@@ -305,7 +305,24 @@ def get_session_user(token: str):
         user_id = s['user_id']
     return get_user_by_id(user_id)
 
+def toolbox_session_user(handler):
+    if os.getenv("RIBBY_TOOLBOX_AUTH") != "1":
+        return None
+    try:
+        key = Path(os.environ["RIBBY_TOOLBOX_SECRET_FILE"]).read_text().strip()
+    except (KeyError, OSError):
+        return None
+    supplied = handler.headers.get("X-Ribby-Toolbox-Key", "")
+    if len(key) < 64 or not hmac.compare_digest(key, supplied):
+        return None
+    users = load_all(DATA_DIR / "users")
+    return next((u for u in users if u.get("role") == "admin" and u.get("email", "").lower() == ADMIN_EMAIL),
+                next((u for u in users if u.get("role") == "admin"), None))
+
+
 def auth_from_request(handler) -> dict | None:
+    if os.getenv("RIBBY_TOOLBOX_AUTH") == "1":
+        return toolbox_session_user(handler)
     """Gibt User aus Authorization-Header zurück oder None."""
     auth = handler.headers.get("Authorization","")
     if auth.startswith("Bearer "):
@@ -406,6 +423,9 @@ class RibbyHandler(BaseHTTPRequestHandler):
         self.wfile.write(data)
 
     def send_html(self, html: str):
+        if os.getenv("RIBBY_TOOLBOX_AUTH") == "1":
+            bootstrap = '<script>window.RIBBY_TOOLBOX_AUTH=true;document.documentElement.dataset.toolboxAuth="1";</script>'
+            html = html.replace("<head>", "<head>" + bootstrap, 1)
         body = html.encode()
         self.send_response(200)
         self.send_header("Content-Type", "text/html; charset=utf-8")
@@ -424,6 +444,8 @@ class RibbyHandler(BaseHTTPRequestHandler):
         return json.loads(self.read_body())
 
     def do_OPTIONS(self):
+        if os.getenv("RIBBY_TOOLBOX_AUTH") == "1" and urlparse(self.path).path != "/healthz":
+            if not require_auth(self): return
         self.send_response(204)
         self.send_header("Access-Control-Allow-Headers", "Content-Type, Authorization")
         self.send_header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
@@ -431,6 +453,8 @@ class RibbyHandler(BaseHTTPRequestHandler):
         self.end_headers()
 
     def do_HEAD(self):
+        if os.getenv("RIBBY_TOOLBOX_AUTH") == "1" and urlparse(self.path).path != "/healthz":
+            if not require_auth(self): return
         parsed = urlparse(self.path)
         path = parsed.path.rstrip("/") or "/"
         if path in ("/", "/index.html"):
@@ -449,9 +473,19 @@ class RibbyHandler(BaseHTTPRequestHandler):
             self.end_headers()
 
     def do_GET(self):
+        if os.getenv("RIBBY_TOOLBOX_AUTH") == "1" and urlparse(self.path).path != "/healthz":
+            if not require_auth(self): return
         parsed = urlparse(self.path)
         path   = parsed.path.rstrip("/") or "/"
         qs     = parse_qs(parsed.query)
+
+        if path == "/api/auth/toolbox":
+            u = toolbox_session_user(self)
+            if not u:
+                self.send_json({"error": "Toolbox-Adminzugang erforderlich"}, 403)
+                return
+            self.send_json({"user": {k: v for k, v in u.items() if k != "password"}, "toolbox": True})
+            return
 
         # ── Frontend ──────────────────────────────────────────────
         if path == "/" or path == "/index.html":
@@ -607,8 +641,14 @@ class RibbyHandler(BaseHTTPRequestHandler):
             self.send_json({"error": "Route nicht gefunden"}, 404)
 
     def do_POST(self):
+        if os.getenv("RIBBY_TOOLBOX_AUTH") == "1" and urlparse(self.path).path != "/healthz":
+            if not require_auth(self): return
         parsed = urlparse(self.path)
         path   = parsed.path.rstrip("/")
+
+        if os.getenv("RIBBY_TOOLBOX_AUTH") == "1" and path == "/api/auth/login":
+            self.send_json({"error": "Anmeldung erfolgt über die Toolbox"}, 403)
+            return
 
         # ── Login ─────────────────────────────────────────────────
         if path == "/api/auth/login":
@@ -897,6 +937,8 @@ class RibbyHandler(BaseHTTPRequestHandler):
             self.send_json({"error": "Route nicht gefunden"}, 404)
 
     def do_PUT(self):
+        if os.getenv("RIBBY_TOOLBOX_AUTH") == "1" and urlparse(self.path).path != "/healthz":
+            if not require_auth(self): return
         parsed = urlparse(self.path)
         path   = parsed.path.rstrip("/")
 
@@ -1003,6 +1045,8 @@ class RibbyHandler(BaseHTTPRequestHandler):
             self.send_json({"error": "Route nicht gefunden"}, 404)
 
     def do_DELETE(self):
+        if os.getenv("RIBBY_TOOLBOX_AUTH") == "1" and urlparse(self.path).path != "/healthz":
+            if not require_auth(self): return
         parsed = urlparse(self.path)
         path   = parsed.path.rstrip("/")
 

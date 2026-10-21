@@ -252,3 +252,11 @@ Quellen: [Commons-Nachnutzung](https://commons.wikimedia.org/wiki/Commons:Reusin
 [iNaturalist-Bildrechte](https://help.inaturalist.org/en/support/solutions/articles/151000169918),
 [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/),
 [CC0](https://creativecommons.org/publicdomain/zero/1.0/).
+
+## Toolbox und App-Icon
+
+Das vorhandene Ribby-Logo wird auch als Browser-Icon verwendet. Für die
+Toolbox ist das Original zusätzlich als PNG unter `toolbox/ribby-logo.png` enthalten.
+Der optionale direkte Einstieg für bereits angemeldete Toolbox-Admins ist in
+[toolbox/README.md](toolbox/README.md) beschrieben. Ohne diese gezielte
+Serverkonfiguration bleibt die bisherige eigenständige Anmeldung aktiv.
