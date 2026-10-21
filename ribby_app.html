@@ -2421,6 +2421,25 @@ function lngLatToWorld(lat,lon,z){
   const y=(0.5-Math.log((1+s)/(1-s))/(4*Math.PI))*scale;
   return {x,y};
 }
+function mapAttributionHtml(includeOsm=false){
+  const link=(url,label)=>'<a href="'+url+'" target="_blank" rel="noopener noreferrer" style="color:inherit">'+label+'</a>';
+  return 'Kartendarstellung: © '+link('https://www.bkg.bund.de','BKG')+' ('+new Date().getFullYear()+') '+link('https://www.govdata.de/dl-de/by-2-0','dl-de/by-2-0')+' · '+link('https://sgx.geodatenzentrum.de/web_public/gdz/datenquellen/datenquellen_topplusopen.html','Datenquellen')+(includeOsm?' · © '+link('https://www.openstreetmap.org/copyright','OpenStreetMap contributors'):'');
+}
+function mapTileUrl(provider,z,x,y){
+  return provider==='osm'?'https://tile.openstreetmap.org/'+z+'/'+x+'/'+y+'.png':'https://sgx.geodatenzentrum.de/wmts_topplus_open/tile/1.0.0/web/default/WEBMERCATOR/'+z+'/'+y+'/'+x+'.png';
+}
+function handleMapTileError(image){
+  const canvas=image.closest('.map-canvas');
+  if(image.dataset.mapProvider==='bkg'){
+    image.dataset.mapProvider='osm';
+    image.referrerPolicy='strict-origin-when-cross-origin';
+    const credit=canvas?.querySelector('.map-credit');if(credit)credit.innerHTML=mapAttributionHtml(true);
+    image.src=mapTileUrl('osm',image.dataset.mapZ,image.dataset.mapX,image.dataset.mapY);
+  }else{
+    image.onerror=null;image.style.visibility='hidden';
+    if(canvas&&!canvas.dataset.mapUnavailable){canvas.dataset.mapUnavailable='1';toast('Kartenhintergrund derzeit nicht erreichbar. GPS-Punkte bleiben sichtbar.','err');}
+  }
+}
 function mapTileLayerHtml(center,z,w,h){
   const c=lngLatToWorld(center.lat,center.lon,z);
   const startX=Math.floor((c.x-w/2)/256), endX=Math.floor((c.x+w/2)/256);
@@ -2433,7 +2452,7 @@ function mapTileLayerHtml(center,z,w,h){
       const tx=((x%max)+max)%max;
       const left=Math.round(x*256-(c.x-w/2));
       const top=Math.round(y*256-(c.y-h/2));
-      html+='<img src="https://tile.openstreetmap.org/'+z+'/'+tx+'/'+y+'.png" style="left:'+left+'px;top:'+top+'px" alt="">';
+      html+='<img src="'+mapTileUrl('bkg',z,tx,y)+'" data-map-provider="bkg" data-map-z="'+z+'" data-map-x="'+tx+'" data-map-y="'+y+'" referrerpolicy="strict-origin-when-cross-origin" onerror="handleMapTileError(this)" style="left:'+left+'px;top:'+top+'px" alt="">';
     }
   }
   return html+'</div>';
@@ -2448,7 +2467,7 @@ function renderMapCanvas(id,points=[],focusIndex=-1,label='Referenzkarte',preser
   const w=Math.max(el.clientWidth||760,320), h=Math.max(el.clientHeight||560,320);
   const valid=points.filter(p=>p.gps&&Number.isFinite(Number(p.gps.lat))&&Number.isFinite(Number(p.gps.lon)));
   if(!valid.length){
-    el.innerHTML='<div class="map-canvas">'+mapTileLayerHtml(_mapView,_mapView.zoom,w,h)+'<div class="map-region-label">'+escHtml(label)+'</div><div class="map-controls"><button class="map-control-btn" onclick="setMapZoom(1)">+</button><button class="map-control-btn" onclick="setMapZoom(-1)">-</button></div><div class="map-empty"><div class="map-empty-card">Keine GPS-Marker für diese Suche.</div></div><div class="map-credit">OpenStreetMap</div></div>';
+    el.innerHTML='<div class="map-canvas">'+mapTileLayerHtml(_mapView,_mapView.zoom,w,h)+'<div class="map-region-label">'+escHtml(label)+'</div><div class="map-controls"><button class="map-control-btn" onclick="setMapZoom(1)">+</button><button class="map-control-btn" onclick="setMapZoom(-1)">-</button></div><div class="map-empty"><div class="map-empty-card">Keine GPS-Marker für diese Suche.</div></div><div class="map-credit">'+mapAttributionHtml()+'</div></div>';
     return;
   }
   if(preserveView&&_mapView?.lat!=null&&_mapView?.lon!=null){
@@ -2470,7 +2489,7 @@ function renderMapCanvas(id,points=[],focusIndex=-1,label='Referenzkarte',preser
     const img=p.image?'<img src="'+escHtml(p.image)+'" alt="" onerror="this.replaceWith(Object.assign(document.createElement(\'span\'),{textContent:\''+initial+'\'}))">':'<span>'+initial+'</span>';
     return '<button class="map-pin '+(originalIndex===focusIndex?'active':'')+'" onclick="focusMapPoint('+originalIndex+')" title="'+escHtml(p.species)+'" style="left:'+safeX+'px;top:'+safeY+'px">'+img+'<span class="map-pin-label">'+escHtml(p.species)+'</span></button>';
   }).join('');
-  el.innerHTML='<div class="map-canvas">'+mapTileLayerHtml(_mapView,_mapView.zoom,w,h)+'<div class="map-region-label">'+escHtml(label)+' · '+valid.length+' Marker · Zoom '+(_mapView.zoom||8)+'</div><div class="map-controls"><button class="map-control-btn" onclick="setMapZoom(1)">+</button><button class="map-control-btn" onclick="setMapZoom(-1)">-</button></div>'+pins+'<div class="map-credit">OpenStreetMap</div></div>';
+  el.innerHTML='<div class="map-canvas">'+mapTileLayerHtml(_mapView,_mapView.zoom,w,h)+'<div class="map-region-label">'+escHtml(label)+' · '+valid.length+' Marker · Zoom '+(_mapView.zoom||8)+'</div><div class="map-controls"><button class="map-control-btn" onclick="setMapZoom(1)">+</button><button class="map-control-btn" onclick="setMapZoom(-1)">-</button></div>'+pins+'<div class="map-credit">'+mapAttributionHtml()+'</div></div>';
 }
 function focusMapPoint(idx){
   const p=_mapPoints[Number(idx)];
@@ -2505,7 +2524,7 @@ async function searchMapPlace(){
   const q=(document.getElementById('map-place-q')?.value||'').trim();
   if(q){
     try{
-      const r=await fetch('https://nominatim.openstreetmap.org/search?format=json&limit=1&q='+encodeURIComponent(q));
+      const r=await fetch('https://nominatim.openstreetmap.org/search?format=json&limit=1&q='+encodeURIComponent(q),{referrerPolicy:'strict-origin-when-cross-origin'});
       const data=await r.json();
       if(data&&data[0]){
         _mapAreaFocus={label:q,lat:parseFloat(data[0].lat),lon:parseFloat(data[0].lon),radiusKm:25};

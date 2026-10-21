@@ -1,0 +1,18 @@
+const fs=require('node:fs'),vm=require('node:vm'),assert=require('node:assert/strict');
+const html=fs.readFileSync('ribby_app.html','utf8'),toasts=[];
+const ctx=vm.createContext({Date,console,document:{getElementById(){return null;}},toast:(...x)=>toasts.push(x),escHtml:String,_mapView:{lat:52.52,lon:13.405,zoom:6},_mapPoints:[]});
+vm.runInContext(html.slice(html.indexOf('function pointInitial('),html.indexOf('function focusMapPoint(')),ctx);
+assert.equal(ctx.mapTileUrl('bkg',10,549,343),'https://sgx.geodatenzentrum.de/wmts_topplus_open/tile/1.0.0/web/default/WEBMERCATOR/10/343/549.png');
+assert.equal(ctx.mapTileUrl('osm',10,549,343),'https://tile.openstreetmap.org/10/549/343.png');
+const tiles=ctx.mapTileLayerHtml({lat:52.52,lon:13.405},6,760,560);assert.match(tiles,/data-map-provider="bkg"/);assert.match(tiles,/referrerpolicy="strict-origin-when-cross-origin"/);assert.match(tiles,/onerror="handleMapTileError\(this\)"/);assert.ok(!tiles.includes('tile.openstreetmap.org'));
+assert.match(ctx.mapAttributionHtml(),/bkg.bund.de/);assert.match(ctx.mapAttributionHtml(),/govdata.de\/dl-de\/by-2-0/);assert.match(ctx.mapAttributionHtml(),/datenquellen_topplusopen/);assert.match(ctx.mapAttributionHtml(true),/openstreetmap.org\/copyright/);
+const credit={innerHTML:''},canvas={dataset:{},querySelector(){return credit;}};
+const image={dataset:{mapProvider:'bkg',mapZ:'10',mapX:'549',mapY:'343'},style:{},closest(){return canvas;}};
+ctx.handleMapTileError(image);assert.equal(image.src,ctx.mapTileUrl('osm',10,549,343));assert.equal(image.referrerPolicy,'strict-origin-when-cross-origin');assert.equal(image.dataset.mapProvider,'osm');assert.match(credit.innerHTML,/OpenStreetMap contributors/);
+ctx.handleMapTileError(image);assert.equal(image.style.visibility,'hidden');assert.equal(image.onerror,null);assert.equal(toasts.length,1);ctx.handleMapTileError({...image,style:{}});assert.equal(toasts.length,1);
+const wrapped=ctx.mapTileLayerHtml({lat:0,lon:181},3,760,560);for(const match of wrapped.matchAll(/data-map-x="(\d+)"/g))assert.ok(Number(match[1])<8);
+const el={clientWidth:760,clientHeight:560,innerHTML:''};ctx.document.getElementById=()=>el;
+ctx.renderMapCanvas('gps-map',[]);assert.match(el.innerHTML,/Keine GPS-Marker/);assert.match(el.innerHTML,/Kartendarstellung/);
+ctx.renderMapCanvas('gps-map',[{gps:{lat:52.52,lon:13.405},species:'Test',image:''}]);assert.match(el.innerHTML,/map-pin/);assert.match(el.innerHTML,/Kartendarstellung/);assert.match(el.innerHTML,/setMapZoom\(1\)/);
+assert.ok(html.includes("encodeURIComponent(q),{referrerPolicy:'strict-origin-when-cross-origin'}"));
+console.log('Map tiles, axis order, attribution, bounded fallback, dateline, markers and search identification passed');

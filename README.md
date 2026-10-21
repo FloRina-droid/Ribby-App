@@ -266,3 +266,7 @@ Serverkonfiguration bleibt die bisherige eigenständige Anmeldung aktiv.
 Public reference features prepared by an administrator are cached centrally for the exact image SHA-256 and model revision. Existing valid packs remain unchanged; private photos are excluded. The image model warms up when photo mode opens, and reference metadata loads with at most four parallel requests. New models, reference photos or species may still need one-time preparation.
 
 See [measured timings and validation](reports/image_performance.md).
+
+## Map background
+
+The GPS map uses BKG TopPlusOpen with visible source and licence links. Failed tiles fall back once to OpenStreetMap; markers remain available if both providers fail. Tile images and explicit place searches send only the app origin as their cross-origin referrer. See [map service verification](reports/map_service.md).
