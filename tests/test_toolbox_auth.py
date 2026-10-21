@@ -1,4 +1,4 @@
-import os,tempfile,json,threading,unittest,sys
+import os,tempfile,json,threading,unittest,sys,importlib
 from pathlib import Path
 from urllib.request import Request,urlopen
 from urllib.error import HTTPError
@@ -9,7 +9,7 @@ class ToolboxAuthTests(unittest.TestCase):
  def setUpClass(cls):
   cls.temp=tempfile.TemporaryDirectory();cls.data=Path(cls.temp.name);cls.key='a'*64;(cls.data/'key').write_text(cls.key)
   os.environ.update(RIBBY_DATA_DIR=str(cls.data/'data'),RIBBY_DISABLE_SEED='1',RIBBY_TOOLBOX_AUTH='1',RIBBY_TOOLBOX_SECRET_FILE=str(cls.data/'key'))
-  sys.path.insert(0,str(ROOT));import ribby_server;cls.mod=ribby_server
+  sys.path.insert(0,str(ROOT));import ribby_server;ribby_server=importlib.reload(ribby_server);cls.mod=ribby_server
   (ribby_server.DATA_DIR/'users'/'admin.json').write_text(json.dumps({'id':'admin','name':'Existing Admin','email':'admin@ribby.app','role':'admin','password':'never-expose'}))
   cls.http=ThreadingHTTPServer(('127.0.0.1',0),ribby_server.RibbyHandler);cls.thread=threading.Thread(target=cls.http.serve_forever,daemon=True);cls.thread.start();cls.base='http://127.0.0.1:'+str(cls.http.server_port)
  @classmethod

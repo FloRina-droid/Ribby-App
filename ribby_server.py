@@ -678,6 +678,19 @@ class RibbyHandler(BaseHTTPRequestHandler):
                 revoke_session(auth[7:])
             self.send_json({"status": "ok"})
 
+        elif path == "/api/images/features":
+            if not require_admin(self): return
+            try:
+                body = self.read_json()
+                if not isinstance(body, dict): raise ValueError('JSON object required')
+                created = ribby_images.cache_public_features(DATA_DIR, body.get('reference_id'), body.get('model_key'), body.get('image_sha256'), body.get('vector'))
+                self.send_json({'cached':True,'created':created}, 201 if created else 200)
+            except FileNotFoundError:
+                self.send_json({'error':'Öffentliche Referenz fehlt'},404)
+            except (ValueError,TypeError,KeyError):
+                self.send_json({'error':'Referenzmerkmale oder Bildprüfsumme ungültig'},400)
+            return
+
         # ── Benutzer anlegen (Admin) ──────────────────────────────
         elif path == "/api/users":
             if not require_admin(self): return

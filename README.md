@@ -260,3 +260,9 @@ Toolbox ist das Original zusätzlich als PNG unter `toolbox/ribby-logo.png` enth
 Der optionale direkte Einstieg für bereits angemeldete Toolbox-Admins ist in
 [toolbox/README.md](toolbox/README.md) beschrieben. Ohne diese gezielte
 Serverkonfiguration bleibt die bisherige eigenständige Anmeldung aktiv.
+
+## Image analysis performance
+
+Public reference features prepared by an administrator are cached centrally for the exact image SHA-256 and model revision. Existing valid packs remain unchanged; private photos are excluded. The image model warms up when photo mode opens, and reference metadata loads with at most four parallel requests. New models, reference photos or species may still need one-time preparation.
+
+See [measured timings and validation](reports/image_performance.md).

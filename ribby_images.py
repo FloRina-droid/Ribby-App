@@ -495,3 +495,42 @@ def reference_file(data_dir, ref_id):
         temporary.write_bytes(content)
         temporary.replace(target)
     return target, image_mime(target.read_bytes())
+
+
+def cache_public_features(data_dir, reference_id, model_key, image_hash, vector):
+    """Cache admin-prepared public features only for the exact current photo bytes."""
+    if not re.fullmatch(r'[a-f0-9]{32}', str(reference_id)) or model_key not in VECTOR_MODELS:
+        raise ValueError('Ungültige Referenz oder unbekanntes Modell')
+    if not re.fullmatch(r'[a-f0-9]{64}', str(image_hash)):
+        raise ValueError('Bildprüfsumme fehlt')
+    if not isinstance(vector, list) or len(vector) != VECTOR_MODELS[model_key] or not all(type(x) in (int,float) and math.isfinite(x) for x in vector) or abs(sum(x*x for x in vector)-1) > .01:
+        raise ValueError('Ungültige Bildmerkmale')
+    root = Path(data_dir)
+    metadata_path = root/'image_refs'/f'{reference_id}.json'
+    image_path = root/'image_refs'/f'{reference_id}.bin'
+    metadata = json.loads(metadata_path.read_text(encoding='utf-8'))
+    if not isinstance(metadata, dict) or not license_info(metadata.get('license_url')) or not safe_url(metadata.get('url'), IMAGE_HOSTS):
+        raise ValueError('Nur freigegebene öffentliche Referenzbilder dürfen zwischengespeichert werden')
+    if image_path.stat().st_size > 4*1024*1024:
+        raise ValueError('Referenzbild zu groß')
+    photo = image_path.read_bytes()
+    image_mime(photo)
+    if hashlib.sha256(photo).hexdigest() != image_hash:
+        raise ValueError('Referenzbild wurde geändert')
+    directory = root/'image_vectors'/model_key
+    directory.mkdir(parents=True,exist_ok=True)
+    destination = directory/f'{reference_id}.json'
+    # Existing valid packs are never overwritten by a browser cache entry.
+    existing = with_precomputed_vectors(root, {'references':[{'id':reference_id}]}, model_key)
+    if existing['references'][0].get('features'):
+        return False
+    record = {'reference_id':reference_id,'model_key':model_key,'image_sha256':image_hash,'vector':vector}
+    temporary = None
+    try:
+        with tempfile.NamedTemporaryFile(mode='w',encoding='utf-8',dir=directory,prefix=reference_id+'.',suffix='.tmp',delete=False) as file:
+            temporary=Path(file.name)
+            json.dump(record,file,separators=(',',':'))
+        temporary.replace(destination)
+    finally:
+        if temporary: temporary.unlink(missing_ok=True)
+    return True

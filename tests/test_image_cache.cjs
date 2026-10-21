@@ -3,6 +3,7 @@ const fs=require('node:fs'),vm=require('node:vm'),assert=require('node:assert/st
 const {webcrypto,createHash}=require('node:crypto');
 const html=fs.readFileSync('ribby_app.html','utf8');
 const ctx=vm.createContext({console,Blob,crypto:webcrypto,DOMException,document:{addEventListener(){},getElementById(){return {value:'bioclip',addEventListener(){}};}},window:{addEventListener(){}}});
+ctx.serverMode=false;
 vm.runInContext(html.slice(html.indexOf('// Photo mode:'),html.indexOf('// ── INIT ')),ctx);
 const key=vm.runInContext('imageModelKey()',ctx),old=[1,...new Array(511).fill(0)],fresh=[0,1,...new Array(510).fill(0)];
 const photo=new Blob(['new reference bytes']),hash=createHash('sha256').update('new reference bytes').digest('hex'),before='a'.repeat(64);

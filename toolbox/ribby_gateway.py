@@ -10,6 +10,16 @@ from .security import consume, issue, digest
 from .links import app_domain, portal_hosts
 from .port_routes import port_app, port_map
 
+class SizedRequestBody:
+    """Keep the incoming byte length while streaming to HTTP/1.0 app servers."""
+    def __init__(self, stream, length): self.stream, self.length = stream, length
+    def __len__(self): return self.length
+    def __iter__(self):
+        while True:
+            chunk = self.stream.read(65536)
+            if not chunk: return
+            yield chunk
+
 def create_app():
     gateway=Flask(__name__)
     gateway.config['MAX_CONTENT_LENGTH']=int(os.environ.get('APP_UPLOAD_LIMIT','2147483648'))
@@ -80,7 +90,7 @@ def create_app():
             cookies={k[len(cookie_prefix):]:v for k,v in request.cookies.items() if k.startswith(cookie_prefix)}
         if cookies: headers['Cookie']='; '.join(k+'='+v for k,v in cookies.items())
         try:
-            upstream_response=requests.request(request.method,upstream+'/'+path,params=request.args,headers=headers,data=request.stream if request.content_length else None,stream=True,allow_redirects=False,timeout=(10,300))
+            upstream_response=requests.request(request.method,upstream+'/'+path,params=request.args,headers=headers,data=SizedRequestBody(request.stream,request.content_length) if request.content_length else None,stream=True,allow_redirects=False,timeout=(10,300))
         except requests.RequestException: abort(502,'App ist momentan nicht erreichbar.')
         def body():
             try:

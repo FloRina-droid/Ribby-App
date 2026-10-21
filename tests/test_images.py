@@ -338,6 +338,11 @@ class ApiTests(unittest.TestCase):
     def tearDownClass(cls):
         cls.http.shutdown(); cls.http.server_close(); cls.temp.cleanup()
 
+    def test_public_feature_endpoint_requires_admin(self):
+        for user,expected in [(None,401),('one',403),('admin',400)]:
+            self.assertEqual(self.request('/api/images/features',method='POST',data={},user=user)[0],expected)
+        self.assertEqual(self.request('/api/images/features',method='POST',data=[],user='admin')[0],400)
+
     def request(self, path, method='GET', data=None, user='one'):
         headers = {'Content-Type': 'application/json'}
         if user: headers['Authorization'] = 'Bearer '+self.tokens[user]

@@ -602,7 +602,7 @@ audio{width:100%;margin-top:7px;height:30px}
       <p id="image-input-status" role="status" class="image-hint"></p>
       <div class="image-filter-row"><div class="fg"><label for="image-group">Artengruppe</label><select id="image-group" onchange="updateImageScope()"><option value="">Alle Gruppen</option></select></div><p id="image-scope" class="image-hint">Artenbibliothek wird geladen …</p></div>
       <details class="image-options"><summary>Analyse-Einstellungen</summary>
-        <div class="image-filter-row"><div class="fg"><label for="image-model">Bildmodell</label><select id="image-model" onchange="updateImageScope()"><option value="bioclip" selected>BioCLIP – Artenmodell (173 MB)</option><option value="dinov2">DINOv2 Small – kleiner und schneller</option></select></div><div class="fg"><label for="image-reference-count">Referenzumfang</label><select id="image-reference-count" onchange="updateImageScope()"><option value="8">Schnell – bis zu 8 Fotos je Art</option><option value="16" selected>Standard – bis zu 16 Fotos je Art</option><option value="32">Ausführlich – bis zu 32 Fotos je Art</option></select></div></div>
+        <div class="image-filter-row"><div class="fg"><label for="image-model">Bildmodell</label><select id="image-model" onchange="updateImageScope();warmImageModel().catch(()=>{})"><option value="bioclip" selected>BioCLIP – Artenmodell (173 MB)</option><option value="dinov2">DINOv2 Small – kleiner und schneller</option></select></div><div class="fg"><label for="image-reference-count">Referenzumfang</label><select id="image-reference-count" onchange="updateImageScope()"><option value="8">Schnell – bis zu 8 Fotos je Art</option><option value="16" selected>Standard – bis zu 16 Fotos je Art</option><option value="32">Ausführlich – bis zu 32 Fotos je Art</option></select></div></div>
         <label class="image-consent"><input id="image-online" type="checkbox" checked><span>Online-Referenzen von Wikimedia Commons und iNaturalist verwenden (CC0 oder CC BY).</span></label>
       </details>
       <p class="image-hint">Dein Foto wird im Browser ausgewertet. Beim ersten Start lädt Ribby das Bildmodell und Referenzen; die Vorbereitung kann einige Minuten dauern.</p>
@@ -2970,7 +2970,7 @@ async function prepareImageMode(){
     const group=document.getElementById('image-group'), selected=group.value;
     group.innerHTML='<option value="">Alle Gruppen</option>'+[...new Set(imageLibrary.map(s=>s.category).filter(Boolean))].sort().map(c=>`<option value="${escHtml(c)}">${escHtml(c)}</option>`).join('');
     if([...group.options].some(o=>o.value===selected))group.value=selected;
-    updateImageScope();
+    updateImageScope();warmImageModel().catch(()=>{});
   }catch(e){imageStatus('Artenbibliothek konnte nicht geladen werden: '+e.message);}
 }
 function imageCandidates(){
@@ -3154,6 +3154,49 @@ function setImageBusy(busy){
   document.querySelectorAll('#image-group,#image-online,#image-file,#image-capture,#image-reference-count,#image-model').forEach(el=>el.disabled=busy);
   if(busy)clearImageCrop();
 }
+let imageModelWarmup=null;
+function warmImageModel(){
+  const model=selectedImageModel();
+  if(imageModelWarmup?.worker===imageWorker&&imageModelWarmup.model===model)return imageModelWarmup.promise;
+  const promise=extractImageVector(null),state={worker:imageWorker,model,promise};
+  imageModelWarmup=state;
+  promise.catch(()=>{if(imageModelWarmup===state)imageModelWarmup=null;});
+  return promise;
+}
+const publicImageFeatureJobs=new Map(),publicImageFeatureQueue=[];
+let publicImageFeatureActive=0;
+function queuePublicImageFeatures(ref,modelKey,hash,vector){
+  if(!serverMode||curUser?.role!=='admin'||ref.license==='private'||!/^[a-f0-9]{32}$/.test(ref.id||''))return;
+  const key=modelKey+':'+ref.id+':'+hash,userId=curUser.id;
+  if(publicImageFeatureJobs.has(key))return;
+  publicImageFeatureJobs.set(key,true);
+  publicImageFeatureQueue.push({key,userId,payload:{reference_id:ref.id,model_key:modelKey,image_sha256:hash,vector}});
+  drainPublicImageFeatures();
+}
+function drainPublicImageFeatures(){
+  while(publicImageFeatureActive<4&&publicImageFeatureQueue.length){
+    const item=publicImageFeatureQueue.shift();
+    if(curUser?.id!==item.userId||curUser?.role!=='admin'){publicImageFeatureJobs.delete(item.key);continue;}
+    publicImageFeatureActive++;
+    imageApi('/api/images/features',{method:'POST',body:JSON.stringify(item.payload)})
+      .catch(()=>publicImageFeatureJobs.delete(item.key))
+      .finally(()=>{publicImageFeatureActive--;drainPublicImageFeatures();});
+  }
+}
+async function loadImageReferenceSets(candidates,modelKey,limit,signal){
+  const result=new Array(candidates.length);let next=0;
+  await Promise.all(Array.from({length:Math.min(4,candidates.length)},async()=>{
+    while(next<candidates.length){
+      const index=next++,sp=candidates[index];
+      if(signal?.aborted)throw new DOMException('Abgebrochen','AbortError');
+      try{
+        const response=await imageApi('/api/images/references?species_id='+encodeURIComponent(sp.id)+'&model='+encodeURIComponent(modelKey)+'&limit='+limit,{signal});
+        result[index]=await response.json();
+      }catch(e){if(e.name==='AbortError')throw e;result[index]={references:[],warnings:[e.message]};}
+    }
+  }));
+  return result;
+}
 function extractImageVector(blob){
   if(!imageWorker){
     const source=document.getElementById('image-worker-code').textContent;
@@ -3302,8 +3345,10 @@ async function imageReferenceVector(ref,signal,assertActive=()=>{}){
   let cached=null;
   try{cached=await dbGet('imagefeatures',key);}catch{/* The optional cache must not block inference. */}
   current();
-  if(cached?.model_key===modelKey&&cached.image_sha256===hash&&validImageVector(cached.vector,dimensions))
+  if(cached?.model_key===modelKey&&cached.image_sha256===hash&&validImageVector(cached.vector,dimensions)){
+    queuePublicImageFeatures(ref,modelKey,hash,cached.vector);
     return {vector:cached.vector,image_sha256:hash};
+  }
   if(!blob){
     blob=await referenceBlob(ref,signal);current();
     const actual=await imageBlobDigest(blob);current();
@@ -3312,7 +3357,7 @@ async function imageReferenceVector(ref,signal,assertActive=()=>{}){
   const vector=await extractImageVector(blob);current();
   if(!validImageVector(vector,dimensions))throw new Error('Ungültige Referenzmerkmale des Bildmodells.');
   try{await dbPut('imagefeatures',{id:key,model_key:modelKey,image_sha256:hash,vector});}catch{/* Cache quota must not prevent identification. */}
-  current();return {vector,image_sha256:hash};
+  current();queuePublicImageFeatures(ref,modelKey,hash,vector);return {vector,image_sha256:hash};
 }
 
 async function imageApi(path,opts={}){
@@ -3354,19 +3399,15 @@ async function doImageAnalyze(){
     const own=await ownImageReferences();assertActive();
     if(!online&&!own.some(r=>candidates.some(s=>s.id===r.species_id)))throw new Error('Keine eigenen Referenzfotos für diese Gruppe vorhanden. Online-Referenzen aktivieren oder zunächst eine Art manuell bestätigen.');
     imageProgress('Bildmodell vorbereiten und Foto auswerten …',3);
-    const input=await extractImageVector(file);assertActive();
+    const [input,referenceSets]=await Promise.all([extractImageVector(file),online?loadImageReferenceSets(candidates,imageModelKey(),imageReferenceLimit(),run.controller.signal):Promise.resolve([])]);assertActive();
     if(!validImageVector(input,IMAGE_MODELS[selectedImageModel()].dimensions))throw new Error('Das Bildmodell hat ungültige Merkmale geliefert. Bitte erneut analysieren.');
     const rows=[], warnings=new Set();let missing=0, failed=0;
     for(let i=0;i<candidates.length;i++){
       assertActive();const sp=candidates[i];imageProgress((i+1)+'/'+candidates.length+': '+(sp.name_de||sp.sci)+' – Referenzfotos vergleichen …',5+90*i/candidates.length);
       let refs=selectDiverseImageReferences(own.filter(r=>r.species_id===sp.id),Number.MAX_SAFE_INTEGER);
       if(online){
-        try{
-          const response=await imageApi('/api/images/references?species_id='+encodeURIComponent(sp.id)+'&model='+encodeURIComponent(imageModelKey())+'&limit='+imageReferenceLimit(),{signal:run.controller.signal});
-          const result=await response.json();assertActive();
-          // Balance the two sources instead of always selecting the first provider.
-          refs=refs.concat(selectDiverseImageReferences(result.references,imageReferenceLimit()));(result.warnings||[]).forEach(w=>warnings.add(w));
-        }catch(e){if(e.name==='AbortError')throw e;warnings.add(e.message);}
+        const result=referenceSets[i];
+        refs=refs.concat(selectDiverseImageReferences(result.references,imageReferenceLimit()));(result.warnings||[]).forEach(w=>warnings.add(w));
       }
       const compared=[];
       for(const ref of refs){
@@ -3626,14 +3667,22 @@ async function bioModelBytes(id){
   if(hash!==BIO_MODEL_SHA){if(cache)await cache.delete(BIO_MODEL_URL);throw new Error('Gespeichertes BioCLIP-Modell beschädigt. Bitte erneut starten.');}
   return bytes;
 }
-async function bioExtract(blob,id){
-  if(!bioSession){
+let bioSessionLoading;
+async function ensureBioSession(id){
+  if(bioSession)return bioSession;
+  if(!bioSessionLoading)bioSessionLoading=(async()=>{
     self.postMessage({id,progress:'BioCLIP vorbereiten (173 MB beim ersten Start) …'});
     bioOrt=await import('https://cdn.jsdelivr.net/npm/onnxruntime-web@1.22.0/dist/ort.wasm.min.mjs');
     bioOrt.env.wasm.numThreads=self.crossOriginIsolated?Math.min(4,navigator.hardwareConcurrency||1):1;
     bioOrt.env.wasm.wasmPaths='https://cdn.jsdelivr.net/npm/onnxruntime-web@1.22.0/dist/';
     bioSession=await bioOrt.InferenceSession.create(await bioModelBytes(id),{executionProviders:['wasm'],graphOptimizationLevel:'all'});
-  }
+    return bioSession;
+  })().catch(error=>{bioSessionLoading=null;throw error;});
+  return bioSessionLoading;
+}
+async function bioExtract(blob,id){
+  await ensureBioSession(id);
+  if(!blob)return null;
   const image=await createImageBitmap(blob),canvas=new OffscreenCanvas(224,224),ctx=canvas.getContext('2d');
   ctx.fillStyle='white';ctx.fillRect(0,0,224,224);ctx.imageSmoothingEnabled=true;ctx.imageSmoothingQuality='high';
   const scale=224/Math.min(image.width,image.height),w=image.width*scale,h=image.height*scale;
@@ -3649,13 +3698,13 @@ async function bioExtract(blob,id){
 }
 
 // This worker receives local Blobs; it never sends the user's photo to a server.
-let extractor, rawImageClass;
+let extractor, rawImageClass,extractorLoading;
 self.onmessage = async ({data: {id, blob, profile='original', model='dinov2'}}) => {
   try {
     if(model==='bioclip'||profile==='bioclip'){
       const vector=await bioExtract(blob,id);self.postMessage({id,vector,mean_vector:vector});return;
     }
-    if (!extractor) {
+    if (!extractorLoading)extractorLoading=(async()=>{
       const {pipeline, env, RawImage} = await import('https://cdn.jsdelivr.net/npm/@huggingface/transformers@3.8.1/dist/transformers.min.js');
       rawImageClass=RawImage;
       env.allowLocalModels = false;
@@ -3664,7 +3713,9 @@ self.onmessage = async ({data: {id, blob, profile='original', model='dinov2'}}) 
         dtype:'q8', device:'wasm', revision:'c2bb04a51fab207c420665f1946016107bffc701',
         progress_callback: p => self.postMessage({id, progress: p.status === 'progress' ? 'Bildmodell laden: '+Math.round(p.progress||0)+'%' : 'Bildmodell vorbereiten …'})
       });
-    }
+    })().catch(error=>{extractorLoading=null;throw error;});
+    await extractorLoading;
+    if(!blob){self.postMessage({id,ready:true});return;}
     let input=blob;
     if(profile==='padded'){
       const bitmap=await createImageBitmap(blob),canvas=new OffscreenCanvas(256,256),ctx=canvas.getContext('2d');
