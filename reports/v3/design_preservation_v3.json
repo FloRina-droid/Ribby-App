@@ -1,0 +1,7 @@
+{
+  "pass": true,
+  "scope": "Complete HTML and styles after removing script blocks",
+  "before_sha256": "1bbb105ad7e2ace2c15c2dd2f7e68513a61100c0b6e334edc90b937ba392e6ae",
+  "after_sha256": "1bbb105ad7e2ace2c15c2dd2f7e68513a61100c0b6e334edc90b937ba392e6ae",
+  "app_sha256": "04d32c4191828ad19aae55c0a8174d48b3156739498eb129666b67bace135bfd"
+}

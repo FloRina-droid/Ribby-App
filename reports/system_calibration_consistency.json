@@ -1,0 +1,9 @@
+{
+  "pass": true,
+  "cases": 136,
+  "app_sha256": "4073c8f916e0f068800942ae0c470dc72e2862e14c997be6c9b3588ce82f2339",
+  "calibration_id": "temperature-v1:2959f9ace4fd539902704d04bb7e07f8de675ed62be4201ff5516bf827d91f3a",
+  "rankings_equal": true,
+  "max_probability_difference": 6.747717246069485e-08,
+  "gps_confirmation_and_original_forecasts_persisted": true
+}

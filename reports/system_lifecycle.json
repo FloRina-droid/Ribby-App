@@ -1,0 +1,54 @@
+[
+  {
+    "name": "reload_preserves_session_without_blocking_overlay",
+    "pass": true
+  },
+  {
+    "name": "privacy_notice_accept_keeps_current_page",
+    "pass": true
+  },
+  {
+    "name": "logout_revokes_server_session",
+    "pass": true
+  },
+  {
+    "name": "save_response_does_not_attach_to_next_photo",
+    "pass": true
+  },
+  {
+    "name": "late_save_error_does_not_overwrite_new_dialog",
+    "pass": true
+  },
+  {
+    "name": "private_save_cannot_cross_user_change",
+    "pass": true
+  },
+  {
+    "name": "delayed_history_does_not_replace_new_photo",
+    "pass": true
+  },
+  {
+    "name": "latest_history_selection_wins",
+    "pass": true
+  },
+  {
+    "name": "reopened_confirmation_waits_for_previous_save",
+    "pass": true
+  },
+  {
+    "name": "previous_save_does_not_replace_reanalysis_of_same_photo",
+    "pass": true
+  },
+  {
+    "name": "history_response_after_logout_is_ignored",
+    "pass": true
+  },
+  {
+    "name": "audio_history_is_read_only_with_different_file_selected",
+    "pass": true
+  },
+  {
+    "name": "repeat_analysis_releases_temporary_urls",
+    "pass": true
+  }
+]

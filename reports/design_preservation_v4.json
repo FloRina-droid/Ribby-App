@@ -1,0 +1,7 @@
+{
+  "pass": true,
+  "scope": "Complete static HTML and CSS after removing scripts; dynamic score text/data updated",
+  "before_sha256": "1bbb105ad7e2ace2c15c2dd2f7e68513a61100c0b6e334edc90b937ba392e6ae",
+  "after_sha256": "1bbb105ad7e2ace2c15c2dd2f7e68513a61100c0b6e334edc90b937ba392e6ae",
+  "app_sha256": "4073c8f916e0f068800942ae0c470dc72e2862e14c997be6c9b3588ce82f2339"
+}

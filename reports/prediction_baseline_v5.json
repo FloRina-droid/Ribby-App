@@ -1,0 +1,10 @@
+{
+  "source_commit": "95100e182ae805fef23ea270fddd3ea2a01306a9",
+  "source_evaluation_sha256": "f1f57da1ef5f329194d4d5708da6ba562a181f42d2fd940bd031954d8720b4a2",
+  "prediction_count": 1080,
+  "predictions_sha256": "870decc2970f9b51b1aa0f810d5c7868f589d0c8ecd1f2e11fcd3297b71d4760",
+  "parameters_sha256": {
+    "image_metric.json": "205d9f12587344242428ea393a4a0560a9993d99c44308ece82779a54724d784",
+    "image_calibration.json": "4c1a7a21c2b8729963b3e744fda6fce9d2bc2bedc4f372e449206fdd64ccc49d"
+  }
+}

@@ -1,0 +1,86 @@
+[
+  {
+    "id": "mq0t2js9v0t04",
+    "name_de": "Grasfrosch",
+    "sci": "Rana temporaria",
+    "category": "amphibians"
+  },
+  {
+    "id": "mq0t7739ibshy",
+    "name_de": "Moorfrosch",
+    "sci": "Rana arvalis",
+    "category": "amphibians"
+  },
+  {
+    "id": "mq0t9bjevnk2h",
+    "name_de": "Springfrosch",
+    "sci": "Rana dalmatina",
+    "category": "amphibians"
+  },
+  {
+    "id": "mq0tanxndnjar",
+    "name_de": "Erdkröte",
+    "sci": "Bufo bufo",
+    "category": "amphibians"
+  },
+  {
+    "id": "mq0tc9vcso5d0",
+    "name_de": "Wechselkröte",
+    "sci": "Bufotes viridis",
+    "category": "amphibians"
+  },
+  {
+    "id": "mq0tei2im0t44",
+    "name_de": "Kreuzkröte",
+    "sci": "Epidalea calamita",
+    "category": "amphibians"
+  },
+  {
+    "id": "mq0tgcqh1cl9y",
+    "name_de": "Knoblauchkröte",
+    "sci": "Pelobates fuscus",
+    "category": "amphibians"
+  },
+  {
+    "id": "mq0titnnhaw5h",
+    "name_de": "Seefrosch",
+    "sci": "Pelophylax ridibundus",
+    "category": "amphibians"
+  },
+  {
+    "id": "mq0tmyb0bgie7",
+    "name_de": "Kleiner Wasserfrosch",
+    "sci": "Pelophylax lessonae",
+    "category": "amphibians"
+  },
+  {
+    "id": "mq0tpc7scqdiq",
+    "name_de": "Teichfrosch",
+    "sci": "Pelophylax esculentus",
+    "category": "amphibians"
+  },
+  {
+    "id": "mq0tqmbm7nko9",
+    "name_de": "Laubfrosch",
+    "sci": "Hyla arborea",
+    "category": "amphibians"
+  },
+  {
+    "id": "mq0trv31q3g1x",
+    "name_de": "Rotbauchunke",
+    "sci": "Bombina bombina",
+    "category": "amphibians"
+  },
+  {
+    "id": "mq0tv3ukue2vg",
+    "name_de": "Gelbbauchunke",
+    "sci": "Bombina variegata",
+    "category": "amphibians"
+  },
+  {
+    "id": "mq0twnf1iycna",
+    "name_de": "Geburtshelferkröte",
+    "sci": "Alytes obstetricans",
+    "category": "amphibians"
+  }
+]

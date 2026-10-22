@@ -1,0 +1,22 @@
+{
+  "version": 1,
+  "bytes": 143266637,
+  "sha256": "dcb3af82d9660e9aad43bf4bcc7061969464d1a086ad03b6c127d9230df67182",
+  "parts": [
+    {
+      "name": "ribby_image_seed.zip.part001",
+      "bytes": 50331648,
+      "sha256": "93e5c32ec20319233fa7d9a8c695076e39b9c67b70e696ea67d48c9141d2b77e"
+    },
+    {
+      "name": "ribby_image_seed.zip.part002",
+      "bytes": 50331648,
+      "sha256": "f8a43856ee14d3fadde0df18f4fb44fb566fef8b2bdf351f612eef3e7117d3af"
+    },
+    {
+      "name": "ribby_image_seed.zip.part003",
+      "bytes": 42603341,
+      "sha256": "a5a057b290a8c5e56ba3bd8cdeeb82fcebdc6099f54e1e299c0e69a635da95f9"
+    }
+  ]
+}

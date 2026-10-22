@@ -1,0 +1,74 @@
+[
+  {
+    "name": "file_validation",
+    "pass": true
+  },
+  {
+    "name": "confirm_empty_species",
+    "pass": true
+  },
+  {
+    "name": "confirm_invalid_species",
+    "pass": true
+  },
+  {
+    "name": "pending_upload_disables_analysis",
+    "pass": true
+  },
+  {
+    "name": "crop_removed_while_decoding",
+    "pass": true
+  },
+  {
+    "name": "error_after_logout_ignored",
+    "pass": true
+  },
+  {
+    "name": "private_list_after_logout_ignored",
+    "pass": true
+  },
+  {
+    "name": "cancel_during_reference_display",
+    "pass": true
+  },
+  {
+    "name": "no_references_is_explicit_failure",
+    "pass": true
+  },
+  {
+    "name": "history_outage_can_retry",
+    "pass": true
+  },
+  {
+    "name": "cache_read_failure_is_optional",
+    "pass": true
+  },
+  {
+    "name": "camera_stops_on_navigation",
+    "pass": true
+  },
+  {
+    "name": "late_camera_error_does_not_stop_new_camera",
+    "pass": true
+  },
+  {
+    "name": "camera_capture_after_logout_ignored",
+    "pass": true
+  },
+  {
+    "name": "png_webp_and_large_image_normalization",
+    "pass": true
+  },
+  {
+    "name": "repeated_cancel_and_restart",
+    "pass": true
+  },
+  {
+    "name": "expired_authentication_can_recover",
+    "pass": true
+  },
+  {
+    "name": "mobile_confirmation_scrolls",
+    "pass": true
+  }
+]

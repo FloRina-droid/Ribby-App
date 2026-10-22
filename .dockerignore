@@ -1,6 +1,13 @@
 ribby_data/
 ribby_data_seed/
+ribby_image_seed.zip
 __pycache__/
 *.pyc
 .env
 .DS_Store
+dev/
+reference_data/
+accuracy_test_data/
+accuracy_work/
+tests/
+reports/

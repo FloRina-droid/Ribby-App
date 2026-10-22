@@ -1,0 +1,93 @@
+{
+  "species": [
+    {
+      "species": "Rana temporaria",
+      "save": true,
+      "delete": true
+    },
+    {
+      "species": "Rana arvalis",
+      "save": true,
+      "delete": true
+    },
+    {
+      "species": "Rana dalmatina",
+      "save": true,
+      "delete": true
+    },
+    {
+      "species": "Bufo bufo",
+      "save": true,
+      "delete": true
+    },
+    {
+      "species": "Bufotes viridis",
+      "save": true,
+      "delete": true
+    },
+    {
+      "species": "Epidalea calamita",
+      "save": true,
+      "delete": true
+    },
+    {
+      "species": "Pelobates fuscus",
+      "save": true,
+      "delete": true
+    },
+    {
+      "species": "Pelophylax ridibundus",
+      "save": true,
+      "delete": true
+    },
+    {
+      "species": "Pelophylax lessonae",
+      "save": true,
+      "delete": true
+    },
+    {
+      "species": "Pelophylax esculentus",
+      "save": true,
+      "delete": true
+    },
+    {
+      "species": "Hyla arborea",
+      "save": true,
+      "delete": true
+    },
+    {
+      "species": "Bombina bombina",
+      "save": true,
+      "delete": true
+    },
+    {
+      "species": "Bombina variegata",
+      "save": true,
+      "delete": true
+    },
+    {
+      "species": "Alytes obstetricans",
+      "save": true,
+      "delete": true
+    }
+  ],
+  "checks": [
+    {
+      "name": "same-photo deduplication and conflicting species rejection",
+      "pass": true
+    },
+    {
+      "name": "private references inaccessible to other user",
+      "pass": true
+    },
+    {
+      "name": "admin backup includes all 14 private references, regular user denied",
+      "pass": true
+    },
+    {
+      "name": "all private species references usable with online sources disabled (deterministic inference)",
+      "pass": true
+    }
+  ],
+  "pass": true
+}

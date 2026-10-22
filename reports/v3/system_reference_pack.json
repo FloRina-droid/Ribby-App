@@ -1,0 +1,77 @@
+{
+  "species": [
+    {
+      "species": "Bufo bufo",
+      "photos": 64,
+      "pass": true
+    },
+    {
+      "species": "Alytes obstetricans",
+      "photos": 64,
+      "pass": true
+    },
+    {
+      "species": "Bombina variegata",
+      "photos": 64,
+      "pass": true
+    },
+    {
+      "species": "Rana temporaria",
+      "photos": 64,
+      "pass": true
+    },
+    {
+      "species": "Pelophylax lessonae",
+      "photos": 64,
+      "pass": true
+    },
+    {
+      "species": "Pelobates fuscus",
+      "photos": 64,
+      "pass": true
+    },
+    {
+      "species": "Epidalea calamita",
+      "photos": 64,
+      "pass": true
+    },
+    {
+      "species": "Hyla arborea",
+      "photos": 64,
+      "pass": true
+    },
+    {
+      "species": "Rana arvalis",
+      "photos": 64,
+      "pass": true
+    },
+    {
+      "species": "Bombina bombina",
+      "photos": 64,
+      "pass": true
+    },
+    {
+      "species": "Pelophylax ridibundus",
+      "photos": 64,
+      "pass": true
+    },
+    {
+      "species": "Rana dalmatina",
+      "photos": 64,
+      "pass": true
+    },
+    {
+      "species": "Pelophylax esculentus",
+      "photos": 64,
+      "pass": true
+    },
+    {
+      "species": "Bufotes viridis",
+      "photos": 64,
+      "pass": true
+    }
+  ],
+  "photo_count": 896,
+  "vector_count": 1792,
+  "errors": []
+}

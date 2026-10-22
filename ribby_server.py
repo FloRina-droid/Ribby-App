@@ -16,7 +16,8 @@ Anforderungen: Python 3.10+ (keine zusätzlichen Pakete nötig)
 """
 
 import os, sys, json, hashlib, hmac, secrets, base64, time, mimetypes, shutil, zipfile
-import socket, threading
+import socket, threading, re
+import ribby_images
 from pathlib import Path
 from http.server import ThreadingHTTPServer, BaseHTTPRequestHandler
 from urllib.parse import urlparse, parse_qs
@@ -44,6 +45,8 @@ ADMIN_EMAIL = os.getenv("RIBBY_ADMIN_EMAIL", "admin@ribby.app").strip().lower()
 ADMIN_PASS  = os.getenv("RIBBY_ADMIN_PASSWORD", "")
 CORS_ORIGINS= [o.strip().rstrip("/") for o in os.getenv("RIBBY_CORS_ORIGINS", "").split(",") if o.strip()]
 SESSIONS    = {}   # token → user_id
+SESSION_LOCK = threading.RLock()
+PRIVATE_IMAGE_LOCK = threading.Lock()
 SESSION_TTL = 600  # 10 Minuten
 MAX_UPLOAD_BYTES = env_int("RIBBY_MAX_UPLOAD_MB", 80) * 1024 * 1024
 
@@ -55,6 +58,8 @@ MAX_UPLOAD_BYTES = env_int("RIBBY_MAX_UPLOAD_MB", 80) * 1024 * 1024
 (DATA_DIR / "map_points").mkdir(parents=True, exist_ok=True)
 (DATA_DIR / "sessions").mkdir(parents=True, exist_ok=True)
 (DATA_DIR / "audio_files").mkdir(parents=True, exist_ok=True)
+
+(DATA_DIR / "refimages").mkdir(parents=True, exist_ok=True)
 
 # ── Hilfsfunktionen ──────────────────────────────────────────────────
 def uid():
@@ -269,29 +274,55 @@ def get_user_by_id(uid_: str):
 
 def create_session(user_id: str) -> str:
     token = secrets.token_hex(32)
-    SESSIONS[token] = {"user_id": user_id, "created": time.time()}
-    save_json(DATA_DIR / "sessions" / f"{token}.json", SESSIONS[token])
+    with SESSION_LOCK:
+        SESSIONS[token] = {"user_id": user_id, "created": time.time()}
+        save_json(DATA_DIR / "sessions" / f"{token}.json", SESSIONS[token])
     return token
 
-def get_session_user(token: str):
-    s = SESSIONS.get(token)
-    if not s:
-        s = load_json(DATA_DIR / "sessions" / f"{token}.json")
-        if s:
-            SESSIONS[token] = s
-    if not s: return None
-    if time.time() - s["created"] > SESSION_TTL:
+def revoke_session(token: str):
+    if not re.fullmatch(r'[a-f0-9]{64}', str(token)):
+        return
+    with SESSION_LOCK:
         SESSIONS.pop(token, None)
-        p = DATA_DIR / "sessions" / f"{token}.json"
-        if p.exists():
-            p.unlink()
+        (DATA_DIR / "sessions" / f"{token}.json").unlink(missing_ok=True)
+
+def get_session_user(token: str):
+    if not re.fullmatch(r'[a-f0-9]{64}', str(token)):
         return None
-    s["created"] = time.time()
-    SESSIONS[token] = s
-    save_json(DATA_DIR / "sessions" / f"{token}.json", s)
-    return get_user_by_id(s["user_id"])
+    with SESSION_LOCK:
+        s = SESSIONS.get(token) or load_json(DATA_DIR / "sessions" / f"{token}.json")
+        if not s:
+            return None
+        if not isinstance(s, dict) or not isinstance(s.get('created'), (int, float)) or not s.get('user_id'):
+            revoke_session(token)
+            return None
+        if time.time() - s["created"] > SESSION_TTL:
+            revoke_session(token)
+            return None
+        s["created"] = time.time()
+        SESSIONS[token] = s
+        save_json(DATA_DIR / "sessions" / f"{token}.json", s)
+        user_id = s['user_id']
+    return get_user_by_id(user_id)
+
+def toolbox_session_user(handler):
+    if os.getenv("RIBBY_TOOLBOX_AUTH") != "1":
+        return None
+    try:
+        key = Path(os.environ["RIBBY_TOOLBOX_SECRET_FILE"]).read_text().strip()
+    except (KeyError, OSError):
+        return None
+    supplied = handler.headers.get("X-Ribby-Toolbox-Key", "")
+    if len(key) < 64 or not hmac.compare_digest(key, supplied):
+        return None
+    users = load_all(DATA_DIR / "users")
+    return next((u for u in users if u.get("role") == "admin" and u.get("email", "").lower() == ADMIN_EMAIL),
+                next((u for u in users if u.get("role") == "admin"), None))
+
 
 def auth_from_request(handler) -> dict | None:
+    if os.getenv("RIBBY_TOOLBOX_AUTH") == "1":
+        return toolbox_session_user(handler)
     """Gibt User aus Authorization-Header zurück oder None."""
     auth = handler.headers.get("Authorization","")
     if auth.startswith("Bearer "):
@@ -370,7 +401,7 @@ class RibbyHandler(BaseHTTPRequestHandler):
         self.send_header("X-Content-Type-Options", "nosniff")
         self.send_header("X-Frame-Options", "DENY")
         self.send_header("Referrer-Policy", "strict-origin-when-cross-origin")
-        self.send_header("Permissions-Policy", "camera=(), geolocation=(self), microphone=(self)")
+        self.send_header("Permissions-Policy", "camera=(self), geolocation=(self), microphone=(self)")
 
     def send_json(self, data, status=200):
         body = json.dumps(data, ensure_ascii=False).encode()
@@ -392,6 +423,9 @@ class RibbyHandler(BaseHTTPRequestHandler):
         self.wfile.write(data)
 
     def send_html(self, html: str):
+        if os.getenv("RIBBY_TOOLBOX_AUTH") == "1":
+            bootstrap = '<script>window.RIBBY_TOOLBOX_AUTH=true;document.documentElement.dataset.toolboxAuth="1";</script>'
+            html = html.replace("<head>", "<head>" + bootstrap, 1)
         body = html.encode()
         self.send_response(200)
         self.send_header("Content-Type", "text/html; charset=utf-8")
@@ -410,6 +444,8 @@ class RibbyHandler(BaseHTTPRequestHandler):
         return json.loads(self.read_body())
 
     def do_OPTIONS(self):
+        if os.getenv("RIBBY_TOOLBOX_AUTH") == "1" and urlparse(self.path).path != "/healthz":
+            if not require_auth(self): return
         self.send_response(204)
         self.send_header("Access-Control-Allow-Headers", "Content-Type, Authorization")
         self.send_header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
@@ -417,6 +453,8 @@ class RibbyHandler(BaseHTTPRequestHandler):
         self.end_headers()
 
     def do_HEAD(self):
+        if os.getenv("RIBBY_TOOLBOX_AUTH") == "1" and urlparse(self.path).path != "/healthz":
+            if not require_auth(self): return
         parsed = urlparse(self.path)
         path = parsed.path.rstrip("/") or "/"
         if path in ("/", "/index.html"):
@@ -435,9 +473,19 @@ class RibbyHandler(BaseHTTPRequestHandler):
             self.end_headers()
 
     def do_GET(self):
+        if os.getenv("RIBBY_TOOLBOX_AUTH") == "1" and urlparse(self.path).path != "/healthz":
+            if not require_auth(self): return
         parsed = urlparse(self.path)
         path   = parsed.path.rstrip("/") or "/"
         qs     = parse_qs(parsed.query)
+
+        if path == "/api/auth/toolbox":
+            u = toolbox_session_user(self)
+            if not u:
+                self.send_json({"error": "Toolbox-Adminzugang erforderlich"}, 403)
+                return
+            self.send_json({"user": {k: v for k, v in u.items() if k != "password"}, "toolbox": True})
+            return
 
         # ── Frontend ──────────────────────────────────────────────
         if path == "/" or path == "/index.html":
@@ -450,7 +498,7 @@ class RibbyHandler(BaseHTTPRequestHandler):
 
         # ── API Routes ────────────────────────────────────────────
         if path == "/api/ping":
-            self.send_json({"status": "ok", "version": 4, "time": now_iso(), "publicUrl": PUBLIC_URL})
+            self.send_json({"status": "ok", "version": 5, "imageRecognition": True, "time": now_iso(), "publicUrl": PUBLIC_URL})
 
         elif path == "/healthz":
             self.send_json({"status": "ok", "time": now_iso()})
@@ -488,6 +536,51 @@ class RibbyHandler(BaseHTTPRequestHandler):
                 self.send_file(audio_file, meta.get("mime_type","audio/wav"))
             else:
                 self.send_json({"error": "Audio nicht gefunden"}, 404)
+
+        elif path == "/api/images/references":
+            if not require_auth(self): return
+            sp_id = qs.get("species_id", [""])[0]
+            species = next((s for s in load_all(DATA_DIR / "species") if s.get("id") == sp_id), None)
+            if not species:
+                self.send_json({"error": "Art nicht gefunden"}, 404); return
+            try:
+                model_key = qs.get('model', [''])[0]
+                if model_key and model_key not in ribby_images.VECTOR_MODELS:
+                    raise ValueError('Unbekanntes Bildmodell')
+                limit = qs.get('limit', [''])[0]
+                if limit and limit not in ('8', '16', '32', '64'):
+                    raise ValueError('Ungültiger Referenzumfang')
+                result = ribby_images.reference_photos(DATA_DIR, species)
+                if limit:
+                    result = {**result, 'references': ribby_images.diverse_photos(result['references'], int(limit))}
+                self.send_json(ribby_images.with_precomputed_vectors(DATA_DIR, result, model_key))
+            except ValueError as e:
+                self.send_json({'error':str(e)},400)
+
+        elif path.startswith("/api/images/file/"):
+            if not require_auth(self): return
+            try:
+                target, mime = ribby_images.reference_file(DATA_DIR, path.split("/")[-1])
+                self.send_file(target, mime)
+            except FileNotFoundError:
+                self.send_json({"error": "Referenzbild nicht gefunden"}, 404)
+            except ValueError as e:
+                self.send_json({"error": str(e)}, 400)
+            except Exception:
+                self.send_json({"error": "Referenzbild momentan nicht erreichbar"}, 502)
+
+        elif path == "/api/images/own":
+            u = require_auth(self)
+            if not u: return
+            refs = [r for r in load_all(DATA_DIR / "refimages") if r.get("user_id") == u["id"]]
+            for ref in refs:
+                if not ref.get('content_sha256'):
+                    try:
+                        ref['content_sha256'] = hashlib.sha256(base64.b64decode(ref.get('image_b64', ''), validate=True)).hexdigest()
+                    except ValueError:
+                        continue
+                ref['canonical_id'] = 'private:'+u['id']+':'+ref['content_sha256']
+            self.send_json(refs)
 
         elif path == "/api/history":
             u = require_auth(self)
@@ -533,6 +626,7 @@ class RibbyHandler(BaseHTTPRequestHandler):
                 "refaudio": export_refs,
                 "users": load_all(DATA_DIR / "users"),
                 "history": load_all(DATA_DIR / "history"),
+                "refimages": load_all(DATA_DIR / "refimages"),
             }
             self.send_json({
                 "version": 4,
@@ -547,8 +641,14 @@ class RibbyHandler(BaseHTTPRequestHandler):
             self.send_json({"error": "Route nicht gefunden"}, 404)
 
     def do_POST(self):
+        if os.getenv("RIBBY_TOOLBOX_AUTH") == "1" and urlparse(self.path).path != "/healthz":
+            if not require_auth(self): return
         parsed = urlparse(self.path)
         path   = parsed.path.rstrip("/")
+
+        if os.getenv("RIBBY_TOOLBOX_AUTH") == "1" and path == "/api/auth/login":
+            self.send_json({"error": "Anmeldung erfolgt über die Toolbox"}, 403)
+            return
 
         # ── Login ─────────────────────────────────────────────────
         if path == "/api/auth/login":
@@ -575,12 +675,21 @@ class RibbyHandler(BaseHTTPRequestHandler):
         elif path == "/api/auth/logout":
             auth = self.headers.get("Authorization","")
             if auth.startswith("Bearer "):
-                token = auth[7:]
-                SESSIONS.pop(token, None)
-                p = DATA_DIR / "sessions" / f"{token}.json"
-                if p.exists():
-                    p.unlink()
+                revoke_session(auth[7:])
             self.send_json({"status": "ok"})
+
+        elif path == "/api/images/features":
+            if not require_admin(self): return
+            try:
+                body = self.read_json()
+                if not isinstance(body, dict): raise ValueError('JSON object required')
+                created = ribby_images.cache_public_features(DATA_DIR, body.get('reference_id'), body.get('model_key'), body.get('image_sha256'), body.get('vector'))
+                self.send_json({'cached':True,'created':created}, 201 if created else 200)
+            except FileNotFoundError:
+                self.send_json({'error':'Öffentliche Referenz fehlt'},404)
+            except (ValueError,TypeError,KeyError):
+                self.send_json({'error':'Referenzmerkmale oder Bildprüfsumme ungültig'},400)
+            return
 
         # ── Benutzer anlegen (Admin) ──────────────────────────────
         elif path == "/api/users":
@@ -682,6 +791,48 @@ class RibbyHandler(BaseHTTPRequestHandler):
                 self.send_json({"error": str(e)}, 400)
 
         # ── Analyse-Verlauf speichern ─────────────────────────────
+        elif path == "/api/images/own":
+            u = require_auth(self)
+            if not u: return
+            try:
+                body = self.read_json()
+                sp_id = str(body.get("species_id", ""))
+                if not any(s.get("id") == sp_id for s in load_all(DATA_DIR / "species")):
+                    raise ValueError("Art nicht gefunden")
+                raw = str(body.get("image_b64", ""))
+                if len(raw) > 12 * 1024 * 1024:
+                    raise ValueError("Bild zu groß (maximal 8 MB)")
+                content = base64.b64decode(raw, validate=True)
+                if not content or len(content) > 8 * 1024 * 1024:
+                    raise ValueError("Bild fehlt oder ist zu groß")
+                mime = ribby_images.image_mime(content)
+                content_hash = hashlib.sha256(content).hexdigest()
+                # The threaded server must check and save a photo as one operation.
+                with PRIVATE_IMAGE_LOCK:
+                    own_refs = [r for r in load_all(DATA_DIR / 'refimages') if r.get('user_id') == u['id']]
+                    for ref in own_refs:
+                        if not ref.get('content_sha256'):
+                            try:
+                                ref['content_sha256'] = hashlib.sha256(base64.b64decode(ref.get('image_b64',''),validate=True)).hexdigest()
+                            except (ValueError, TypeError):
+                                continue
+                    duplicate = next((r for r in own_refs if r.get('content_sha256') == content_hash), None)
+                    if duplicate:
+                        if duplicate.get('species_id') != sp_id:
+                            self.send_json({'error': 'Dieses Foto ist bereits einer anderen Art zugeordnet. Bitte die alte Referenz zuerst löschen.'}, 409)
+                        else:
+                            self.send_json(duplicate)
+                        return
+                    ref_id = hashlib.sha256((u['id']+':'+sp_id+':'+content_hash).encode()).hexdigest()[:16]
+                    meta = {"id": ref_id, "species_id": sp_id, "filename": str(body.get("filename", "Foto"))[:200],
+                            'content_sha256': content_hash, 'canonical_id': 'private:'+u['id']+':'+content_hash,
+                            "image_b64": raw, "mime_type": mime, "user_id": u["id"], "created_at": now_iso(),
+                            "license": "private", "creator": u.get("name", ""), "provider": "Eigene Aufnahme"}
+                    save_item(DATA_DIR / "refimages", meta)
+                self.send_json(meta, 201)
+            except Exception as e:
+                self.send_json({"error": str(e)}, 400)
+
         elif path == "/api/history":
             u = require_auth(self)
             if not u: return
@@ -690,6 +841,8 @@ class RibbyHandler(BaseHTTPRequestHandler):
                 entry = {
                     "id": uid(),
                     "filename": body.get("filename",""),
+                    "media_type": "image" if body.get("media_type") == "image" else "audio",
+                    "confirmed_species_id": body.get("confirmed_species_id", ""),
                     "matches": body.get("matches",[]),
                     "duration": body.get("duration"),
                     "gps": body.get("gps"),
@@ -734,7 +887,7 @@ class RibbyHandler(BaseHTTPRequestHandler):
             try:
                 backup = self.read_json()
                 data = backup.get("data", backup)
-                counts = {"species": 0, "refaudio": 0, "users": 0, "history": 0, "errors": 0}
+                counts = {"species": 0, "refaudio": 0, "users": 0, "history": 0, "refimages": 0, "errors": 0}
                 for sp in data.get("species", []):
                     try:
                         if sp.get("id"):
@@ -754,6 +907,25 @@ class RibbyHandler(BaseHTTPRequestHandler):
                         if h.get("id"):
                             save_item(DATA_DIR / "history", h)
                             counts["history"] += 1
+                    except Exception:
+                        counts["errors"] += 1
+                for ref in data.get("refimages", []):
+                    try:
+                        if not re.fullmatch(r"[a-zA-Z0-9_-]{1,80}", str(ref.get("id", ""))):
+                            raise ValueError("Ungültige Bild-ID")
+                        raw = str(ref.get("image_b64", ""))
+                        if len(raw) > 12 * 1024 * 1024:
+                            raise ValueError("Bild zu groß")
+                        image_bytes = base64.b64decode(raw, validate=True)
+                        if len(image_bytes) > 8 * 1024 * 1024:
+                            raise ValueError('Bild zu groß')
+                        ribby_images.image_mime(image_bytes)
+                        # A backup does not grant an external reuse license.
+                        ref["license"] = "private"
+                        ref['content_sha256'] = hashlib.sha256(image_bytes).hexdigest()
+                        ref['canonical_id'] = 'private:'+str(ref.get('user_id', ''))+':'+ref['content_sha256']
+                        save_item(DATA_DIR / "refimages", ref)
+                        counts["refimages"] += 1
                     except Exception:
                         counts["errors"] += 1
                 for r in data.get("refaudio", []):
@@ -778,6 +950,8 @@ class RibbyHandler(BaseHTTPRequestHandler):
             self.send_json({"error": "Route nicht gefunden"}, 404)
 
     def do_PUT(self):
+        if os.getenv("RIBBY_TOOLBOX_AUTH") == "1" and urlparse(self.path).path != "/healthz":
+            if not require_auth(self): return
         parsed = urlparse(self.path)
         path   = parsed.path.rstrip("/")
 
@@ -828,9 +1002,12 @@ class RibbyHandler(BaseHTTPRequestHandler):
             existing = find_by_id(DATA_DIR / "history", hist_id)
             if not existing:
                 self.send_json({"error": "Nicht gefunden"}, 404); return
+            u = auth_from_request(self)
+            if existing.get("user_id") != u["id"] and u.get("role") != "admin":
+                self.send_json({"error": "Kein Zugriff"}, 403); return
             try:
                 body = self.read_json()
-                for key in ("gps", "area"):
+                for key in ("gps", "area", "confirmed_species_id"):
                     if key in body:
                         existing[key] = body[key]
                 existing["updated_at"] = now_iso()
@@ -881,6 +1058,8 @@ class RibbyHandler(BaseHTTPRequestHandler):
             self.send_json({"error": "Route nicht gefunden"}, 404)
 
     def do_DELETE(self):
+        if os.getenv("RIBBY_TOOLBOX_AUTH") == "1" and urlparse(self.path).path != "/healthz":
+            if not require_auth(self): return
         parsed = urlparse(self.path)
         path   = parsed.path.rstrip("/")
 
@@ -912,6 +1091,17 @@ class RibbyHandler(BaseHTTPRequestHandler):
                 self.send_json({"error": "Eigenen Account nicht löschbar"}, 400); return
             deleted = delete_item(DATA_DIR/"users", user_id)
             self.send_json({"deleted": deleted})
+
+        elif path.startswith("/api/images/own/"):
+            u = require_auth(self)
+            if not u: return
+            ref_id = path.split("/")[-1]
+            if not re.fullmatch(r"[a-zA-Z0-9_-]{1,80}", ref_id):
+                self.send_json({"error": "Ungültige Bild-ID"}, 400); return
+            ref = find_by_id(DATA_DIR / "refimages", ref_id)
+            if not ref or ref.get("user_id") != u["id"]:
+                self.send_json({"error": "Nicht gefunden"}, 404); return
+            self.send_json({"deleted": delete_item(DATA_DIR / "refimages", ref_id)})
 
         elif path.startswith("/api/history/"):
             if not require_auth(self): return
@@ -979,13 +1169,20 @@ def get_local_ip():
 if __name__ == "__main__":
     try:
         ensure_seed_data()
+        if os.getenv("RIBBY_DISABLE_SEED", "").strip().lower() not in ("1", "true", "yes"):
+            try:
+                copied = ribby_images.install_reference_seed(DATA_DIR, BASE_DIR / "ribby_image_seed.zip")
+                if copied:
+                    print(f"  Bildreferenzen in Ribby-Datenbank eingespielt: {copied} Dateien")
+            except (OSError, ValueError, zipfile.BadZipFile) as error:
+                print(f"  Bildreferenz-Seed nicht geladen; Online-Abruf bleibt verfügbar: {error}")
         ensure_default_admin()
         normalize_refaudio_filenames()
         ip = get_local_ip()
 
         print()
         print("=" * 55)
-        print("  Ribby Soundanalyse – Lokaler Netzwerk-Server")
+        print("  Ribby Artenbestimmung – Lokaler Netzwerk-Server")
         print("=" * 55)
         print(f"  Host          : {HOST}")
         print(f"  Port          : {PORT}")

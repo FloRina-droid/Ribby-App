@@ -1,0 +1,24 @@
+{
+  "pass": true,
+  "baseline_commit": "95100e182ae805fef23ea270fddd3ea2a01306a9",
+  "backend_tests": 43,
+  "cache_unit_cases": 13,
+  "cache_browser_cases": 8,
+  "real_model_flows": 136,
+  "stored_results_and_gps": 136,
+  "percentage_browser_cases": 7,
+  "fault_cases": 18,
+  "lifecycle_cases": 13,
+  "private_species": 14,
+  "regression_cases": 4,
+  "frozen_prediction_comparisons": 1080,
+  "rankings_scores_and_parameters_unchanged": true,
+  "static_design_unchanged": true,
+  "integrity_id": "reference-integrity-v1:f9038851b13e4f2ed1c61b624745c68d7e0dbf92193ca38a566849f2702c2953",
+  "app_sha256": "4073c8f916e0f068800942ae0c470dc72e2862e14c997be6c9b3588ce82f2339",
+  "source_sha256": {
+    "ribby_app.html": "4073c8f916e0f068800942ae0c470dc72e2862e14c997be6c9b3588ce82f2339",
+    "ribby_server.py": "2373dcdb1f0f599daa8500aa46a5c96a6e1678218cc03ca8b1ffb4e4df78cae4",
+    "ribby_images.py": "c660e04058a0403890a408d5f59e7eca64828897eebe8d1719dbec8606032d1a"
+  }
+}

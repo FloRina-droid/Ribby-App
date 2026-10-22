@@ -1,0 +1,39 @@
+{
+  "pass": true,
+  "cases": [
+    {
+      "case": "legacy_cache_migrates_after_fresh_inference",
+      "pass": true
+    },
+    {
+      "case": "matching_cache_avoids_reference_inference",
+      "pass": true
+    },
+    {
+      "case": "same_id_old_checksum_recomputes_reference",
+      "pass": true
+    },
+    {
+      "case": "photo_changed_during_download_is_rejected",
+      "pass": true
+    },
+    {
+      "case": "private_photo_same_id_new_bytes_recomputes",
+      "pass": true
+    },
+    {
+      "case": "unchanged_public_pack_remains_calibrated",
+      "pass": true
+    },
+    {
+      "case": "same_public_ids_changed_hash_disable_calibration",
+      "pass": true
+    },
+    {
+      "case": "invalid_query_vector_cannot_show_results",
+      "pass": true
+    }
+  ],
+  "app_sha256": "4073c8f916e0f068800942ae0c470dc72e2862e14c997be6c9b3588ce82f2339",
+  "inference": "deterministic vectors; no recognition accuracy measured"
+}

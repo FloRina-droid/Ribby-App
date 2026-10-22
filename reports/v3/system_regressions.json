@@ -1,0 +1,18 @@
+[
+  {
+    "name": "crop and full-photo restore retain explicit GPS",
+    "pass": true
+  },
+  {
+    "name": "actual audio decoding, feature extraction and confirmation after photo mode (synthetic fixture, no species accuracy claim)",
+    "pass": true
+  },
+  {
+    "name": "admin can add and confirm an unlisted species",
+    "pass": true
+  },
+  {
+    "name": "English privacy notice accurately describes external model and reference connections",
+    "pass": true
+  }
+]

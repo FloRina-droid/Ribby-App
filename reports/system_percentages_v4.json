@@ -1,0 +1,34 @@
+{
+  "pass": true,
+  "cases": [
+    {
+      "case": "manual_toggle_does_not_mutate_analysis_probabilities",
+      "pass": true
+    },
+    {
+      "case": "manual_selection_uses_selected_species_probability",
+      "pass": true
+    },
+    {
+      "case": "manual_species_outside_suggestions_has_no_invented_percent",
+      "pass": true
+    },
+    {
+      "case": "stored_calibration_survives_history_reload",
+      "pass": true
+    },
+    {
+      "case": "legacy_similarity_is_not_relabelled_as_probability",
+      "pass": true
+    },
+    {
+      "case": "all_three_reference_profiles_are_calibrated",
+      "pass": true
+    },
+    {
+      "case": "changed_reference_set_falls_back_to_similarity",
+      "pass": true
+    }
+  ],
+  "query_embedding": "frozen real BioCLIP vector; no recognition accuracy inferred from these UI cases"
+}

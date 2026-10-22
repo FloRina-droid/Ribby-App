@@ -1,0 +1,58 @@
+{
+  "pass": true,
+  "cases": [
+    {
+      "case": "legacy_unbound_cache_recomputed",
+      "pass": true
+    },
+    {
+      "case": "matching_bound_cache_reused_without_inference",
+      "pass": true
+    },
+    {
+      "case": "same_id_changed_photo_recomputed",
+      "pass": true
+    },
+    {
+      "case": "unknown_hash_verified_before_cache_lookup",
+      "pass": true
+    },
+    {
+      "case": "matching_precomputed_features_need_no_download",
+      "pass": true
+    },
+    {
+      "case": "mismatching_precomputed_features_are_rejected",
+      "pass": true
+    },
+    {
+      "case": "changed_download_is_never_cached_or_used",
+      "pass": true
+    },
+    {
+      "case": "private_photo_change_invalidates_same_id",
+      "pass": true
+    },
+    {
+      "case": "invalid_cached_vectors_and_wrong_model_recomputed",
+      "pass": true
+    },
+    {
+      "case": "cache_failures_remain_optional",
+      "pass": true
+    },
+    {
+      "case": "invalid_inference_is_not_saved",
+      "pass": true
+    },
+    {
+      "case": "cancelled_cache_read_cannot_start_inference",
+      "pass": true
+    },
+    {
+      "case": "user_change_cannot_save_late_inference",
+      "pass": true
+    }
+  ],
+  "app_sha256": "4073c8f916e0f068800942ae0c470dc72e2862e14c997be6c9b3588ce82f2339"
+}

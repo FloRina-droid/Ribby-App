@@ -1,0 +1,110 @@
+{
+  "version": 3,
+  "reference_photos": 896,
+  "vector_count": 1792,
+  "species": [
+    {
+      "id": "mq0t2js9v0t04",
+      "sci": "Rana temporaria",
+      "name_de": "Grasfrosch",
+      "photos": 64
+    },
+    {
+      "id": "mq0t7739ibshy",
+      "sci": "Rana arvalis",
+      "name_de": "Moorfrosch",
+      "photos": 64
+    },
+    {
+      "id": "mq0t9bjevnk2h",
+      "sci": "Rana dalmatina",
+      "name_de": "Springfrosch",
+      "photos": 64
+    },
+    {
+      "id": "mq0tanxndnjar",
+      "sci": "Bufo bufo",
+      "name_de": "Erdkröte",
+      "photos": 64
+    },
+    {
+      "id": "mq0tc9vcso5d0",
+      "sci": "Bufotes viridis",
+      "name_de": "Wechselkröte",
+      "photos": 64
+    },
+    {
+      "id": "mq0tei2im0t44",
+      "sci": "Epidalea calamita",
+      "name_de": "Kreuzkröte",
+      "photos": 64
+    },
+    {
+      "id": "mq0tgcqh1cl9y",
+      "sci": "Pelobates fuscus",
+      "name_de": "Knoblauchkröte",
+      "photos": 64
+    },
+    {
+      "id": "mq0titnnhaw5h",
+      "sci": "Pelophylax ridibundus",
+      "name_de": "Seefrosch",
+      "photos": 64
+    },
+    {
+      "id": "mq0tmyb0bgie7",
+      "sci": "Pelophylax lessonae",
+      "name_de": "Kleiner Wasserfrosch",
+      "photos": 64
+    },
+    {
+      "id": "mq0tpc7scqdiq",
+      "sci": "Pelophylax esculentus",
+      "name_de": "Teichfrosch",
+      "photos": 64
+    },
+    {
+      "id": "mq0tqmbm7nko9",
+      "sci": "Hyla arborea",
+      "name_de": "Laubfrosch",
+      "photos": 64
+    },
+    {
+      "id": "mq0trv31q3g1x",
+      "sci": "Bombina bombina",
+      "name_de": "Rotbauchunke",
+      "photos": 64
+    },
+    {
+      "id": "mq0tv3ukue2vg",
+      "sci": "Bombina variegata",
+      "name_de": "Gelbbauchunke",
+      "photos": 64
+    },
+    {
+      "id": "mq0twnf1iycna",
+      "sci": "Alytes obstetricans",
+      "name_de": "Geburtshelferkröte",
+      "photos": 64
+    }
+  ],
+  "new_holdout_photos": 112,
+  "previous_holdout_photos": 28,
+  "split_checks": [
+    "canonical photo ID",
+    "observation ID",
+    "connected creator names/IDs",
+    "identical image SHA256"
+  ],
+  "sources": {
+    "Wikimedia Commons": 80,
+    "iNaturalist": 816
+  },
+  "licenses": {
+    "CC BY 2.0": 15,
+    "CC BY 2.5": 4,
+    "CC BY 3.0": 20,
+    "CC BY 4.0": 778,
+    "CC0 1.0": 79
+  }
+}

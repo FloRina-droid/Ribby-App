@@ -1,0 +1,29 @@
+{
+  "pass": true,
+  "new_photos": 68,
+  "known_reference_or_previous_test_photos": 1036,
+  "distinct_new_photographers": 68,
+  "checks": [
+    "photo ID",
+    "canonical photo ID",
+    "observation ID",
+    "known creator names and IDs",
+    "identical file SHA256"
+  ],
+  "species_counts": {
+    "Alytes obstetricans": 5,
+    "Bombina bombina": 5,
+    "Bombina variegata": 5,
+    "Bufo bufo": 5,
+    "Bufotes viridis": 5,
+    "Epidalea calamita": 5,
+    "Hyla arborea": 5,
+    "Pelobates fuscus": 5,
+    "Pelophylax esculentus": 5,
+    "Pelophylax lessonae": 3,
+    "Pelophylax ridibundus": 5,
+    "Rana arvalis": 5,
+    "Rana dalmatina": 5,
+    "Rana temporaria": 5
+  }
+}
